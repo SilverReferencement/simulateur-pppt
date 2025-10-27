@@ -1,0 +1,52 @@
+<!-- SIMULATEUR PPPT - Code Direct pour Webflow (SANS IFRAME) -->
+<!-- Collez ce code dans un élément "Embed" dans Webflow -->
+<!-- AVANTAGE: Pas d'iframe = pas de double scrollbar ! -->
+
+<!-- Lien vers les styles -->
+<link rel="stylesheet" href="https://silverreferencement.github.io/simulateur-pppt/styles.css">
+
+<!-- Container du simulateur -->
+<div id="pppt-simulator-root"></div>
+
+<!-- Script du simulateur -->
+<script src="https://silverreferencement.github.io/simulateur-pppt/script.js"></script>
+
+<!-- HTML du simulateur injecté dynamiquement -->
+<script>
+(async function() {
+    try {
+        // Charger le HTML depuis GitHub Pages
+        const response = await fetch('https://silverreferencement.github.io/simulateur-pppt/');
+        const html = await response.text();
+
+        // Extraire uniquement le contenu du body (le simulateur)
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const container = doc.querySelector('.container');
+
+        if (container) {
+            // Injecter le HTML dans le root
+            document.getElementById('pppt-simulator-root').innerHTML = container.innerHTML;
+
+            // Réinitialiser l'application (si le script est déjà chargé)
+            if (typeof initializeApp === 'function') {
+                initializeApp();
+                setupEventListeners();
+            }
+        }
+    } catch (error) {
+        console.error('Erreur chargement simulateur:', error);
+        document.getElementById('pppt-simulator-root').innerHTML =
+            '<p style="text-align:center;padding:2rem;color:#ef4444;">Erreur de chargement du simulateur. Veuillez rafraîchir la page.</p>';
+    }
+})();
+</script>
+
+<!-- Style pour le conteneur -->
+<style>
+#pppt-simulator-root {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+</style>

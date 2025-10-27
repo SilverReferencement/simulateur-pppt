@@ -81,36 +81,41 @@
             loading="lazy"
             scrolling="no"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            onload="resizeIframe()">
+            onload="onIframeLoad()">
         </iframe>
     </div>
 </div>
 
 <script>
-// Ajuster automatiquement la hauteur de l'iframe
-function resizeIframe() {
-    const iframe = document.getElementById('pppt-iframe');
-    const loader = document.getElementById('pppt-loader');
+// Écouter les messages de l'iframe pour ajuster la hauteur dynamiquement
+window.addEventListener('message', function(event) {
+    // Sécurité: vérifier l'origine (GitHub Pages)
+    if (event.origin !== 'https://silverreferencement.github.io') {
+        return;
+    }
 
-    // Cacher le loader
+    // Vérifier le type de message
+    if (event.data && event.data.type === 'pppt-resize') {
+        const iframe = document.getElementById('pppt-iframe');
+        const loader = document.getElementById('pppt-loader');
+
+        // Cacher le loader
+        if (loader) {
+            loader.style.display = 'none';
+        }
+
+        // Ajuster la hauteur de l'iframe
+        if (iframe && event.data.height) {
+            iframe.style.height = event.data.height + 'px';
+        }
+    }
+});
+
+// Fonction de secours au chargement initial
+function onIframeLoad() {
+    const loader = document.getElementById('pppt-loader');
     if (loader) {
         loader.style.display = 'none';
     }
-
-    try {
-        // Tenter d'obtenir la hauteur du contenu (fonctionne si même origine)
-        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
-        const height = iframeDocument.documentElement.scrollHeight;
-        iframe.style.height = height + 'px';
-    } catch (e) {
-        // Cross-origin : utiliser hauteur par défaut
-        iframe.style.height = '1400px';
-    }
 }
-
-// Redimensionner au chargement et lors des changements de taille
-window.addEventListener('load', resizeIframe);
-window.addEventListener('resize', function() {
-    setTimeout(resizeIframe, 100);
-});
 </script>

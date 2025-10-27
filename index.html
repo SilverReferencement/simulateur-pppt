@@ -128,5 +128,30 @@
     </div>
 
     <script src="script.js"></script>
+
+    <!-- Communication de la hauteur au parent (pour Webflow iframe) -->
+    <script>
+    (function() {
+        function sendHeight() {
+            const height = document.documentElement.scrollHeight;
+            window.parent.postMessage({ type: 'pppt-resize', height: height }, '*');
+        }
+
+        // Envoyer la hauteur au chargement
+        window.addEventListener('load', sendHeight);
+
+        // Envoyer la hauteur lors des changements (formulaire, animations, etc.)
+        const observer = new ResizeObserver(sendHeight);
+        observer.observe(document.body);
+
+        // Envoyer la hauteur toutes les 500ms pendant les 5 premières secondes (pour les animations)
+        let count = 0;
+        const interval = setInterval(function() {
+            sendHeight();
+            count++;
+            if (count > 10) clearInterval(interval);
+        }, 500);
+    })();
+    </script>
 </body>
 </html>
