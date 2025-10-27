@@ -1,9 +1,10 @@
 // Simulateur PPPT - Calculateur de Prix
-// Version 4.0 - Code postal en haut, nouvelle logique bâtiments
+// Version 5.0 - Backend Render connecté
 // Configuration
 const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
 const SHEET_NAME = 'Feuille 1';
 const QUOTES_SHEET_ID = '1GiPN9N2rb4vRqdGamQLPNoC0i7wRQaXAon5D9slf4og';
+const BACKEND_API_URL = 'https://pppt-backend.onrender.com';
 
 // Codes postaux Île-de-France (sans astérisque)
 const IDF_POSTAL_CODES = ['75', '92', '93', '94', '77', '78', '95'];
@@ -408,39 +409,73 @@ async function handleQuoteSubmission() {
     // Log pour debug
     console.log('Devis à envoyer:', quoteData);
 
-    // TODO: Envoyer à votre backend
-    // Le backend va:
-    // 1. Sauvegarder dans Google Sheets (QUOTES_SHEET_ID)
-    // 2. Uploader le fichier PDF si présent
-    // 3. Envoyer l'email
-
-    // Pour l'instant, simulation
+    // Envoyer au backend Render
     try {
-        // Ici on appelle le backend quand il sera prêt
-        // await fetch('YOUR_BACKEND_URL/api/save-quote', {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify(quoteData)
-        // });
+        // Préparer les données FormData (pour supporter l'upload de fichier)
+        const formData = new FormData();
+        formData.append('email', quoteData.email);
+        formData.append('postalCode', quoteData.postalCode);
+        formData.append('lots', quoteData.lots);
+        formData.append('buildings', quoteData.buildings);
+        formData.append('includeDPE', quoteData.includeDPE);
+        formData.append('price', quoteData.price);
+        formData.append('department', quoteData.department);
+        formData.append('isIDF', quoteData.isIDF);
 
-        console.log('⚠️ Backend non connecté - Simulation réussie');
+        // Ajouter le fichier si présent
+        if (selectedFile) {
+            formData.append('dpeFile', selectedFile);
+        }
 
-        // Afficher un message de confirmation
+        // Désactiver le bouton pendant l'envoi
+        submitQuoteBtn.disabled = true;
+        submitQuoteBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+            </svg>
+            Envoi en cours...
+        `;
+
+        // Appel au backend
+        const response = await fetch(`${BACKEND_API_URL}/api/save-quote`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('✅ Devis sauvegardé:', result.quoteId);
+
+            // Afficher un message de confirmation
+            submitQuoteBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                Devis envoyé avec succès !
+            `;
+            submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+
+            // Réinitialiser le formulaire après 3 secondes
+            setTimeout(() => {
+                resetForm();
+            }, 3000);
+        } else {
+            throw new Error(result.error || 'Erreur lors de la sauvegarde');
+        }
+    } catch (error) {
+        console.error('❌ Erreur:', error);
+
+        // Réactiver le bouton
+        submitQuoteBtn.disabled = false;
         submitQuoteBtn.innerHTML = `
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
-            Devis envoyé avec succès !
+            Recevoir le devis par email
         `;
-        submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
 
-        // Réinitialiser le formulaire après 3 secondes
-        setTimeout(() => {
-            resetForm();
-        }, 3000);
-    } catch (error) {
-        console.error('Erreur:', error);
-        alert('Une erreur est survenue. Veuillez réessayer.');
+        alert('Une erreur est survenue lors de l\'envoi du devis. Veuillez réessayer.');
     }
 }
 
@@ -453,6 +488,7 @@ function resetForm() {
     selectedFile = null;
     fileName.textContent = 'Choisir un fichier PDF/Image';
     emailForm.style.display = 'none';
+    submitQuoteBtn.disabled = false;
     emailQuoteBtn.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
