@@ -12,7 +12,6 @@
 .pppt-iframe-wrapper {
     position: relative;
     width: 100%;
-    min-height: 1200px; /* Hauteur minimale pour contenir tout le simulateur */
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     overflow: visible;
@@ -20,10 +19,11 @@
 
 .pppt-iframe-wrapper iframe {
     width: 100%;
-    height: 1200px; /* Hauteur suffisante pour éviter le scroll interne */
+    min-height: 1200px;
     border: none;
     border-radius: 24px;
     display: block;
+    overflow: hidden;
 }
 
 /* Loader pendant le chargement */
@@ -59,12 +59,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .pppt-iframe-wrapper {
-        min-height: 1400px; /* Plus de hauteur sur mobile */
-    }
-
     .pppt-iframe-wrapper iframe {
-        height: 1400px;
+        min-height: 1600px;
     }
 }
 </style>
@@ -83,18 +79,38 @@
             src="https://silverreferencement.github.io/simulateur-pppt/"
             title="Simulateur PPPT"
             loading="lazy"
+            scrolling="no"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            onload="document.getElementById('pppt-loader').style.display='none'">
+            onload="resizeIframe()">
         </iframe>
     </div>
 </div>
 
 <script>
-// Rafraîchir l'iframe si une nouvelle version est disponible
-(function() {
-    // Optionnel : forcer le rechargement toutes les 5 minutes pour éviter le cache
-    // setInterval(function() {
-    //     document.getElementById('pppt-iframe').src = document.getElementById('pppt-iframe').src;
-    // }, 300000);
-})();
+// Ajuster automatiquement la hauteur de l'iframe
+function resizeIframe() {
+    const iframe = document.getElementById('pppt-iframe');
+    const loader = document.getElementById('pppt-loader');
+
+    // Cacher le loader
+    if (loader) {
+        loader.style.display = 'none';
+    }
+
+    try {
+        // Tenter d'obtenir la hauteur du contenu (fonctionne si même origine)
+        const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+        const height = iframeDocument.documentElement.scrollHeight;
+        iframe.style.height = height + 'px';
+    } catch (e) {
+        // Cross-origin : utiliser hauteur par défaut
+        iframe.style.height = '1400px';
+    }
+}
+
+// Redimensionner au chargement et lors des changements de taille
+window.addEventListener('load', resizeIframe);
+window.addEventListener('resize', function() {
+    setTimeout(resizeIframe, 100);
+});
 </script>
