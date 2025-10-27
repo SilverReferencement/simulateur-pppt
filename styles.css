@@ -134,15 +134,26 @@ body {
     color: var(--color-text-dark);
 }
 
-.lots-value {
-    font-size: 2rem;
+.lots-input {
+    font-size: 1.75rem;
     font-weight: 800;
     background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    min-width: 80px;
+    min-width: 100px;
     text-align: right;
+    border: none;
+    outline: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: #f9fafb;
+    color: var(--color-primary);
+    -webkit-text-fill-color: var(--color-primary);
+}
+
+.lots-input:focus {
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
 /* Slider personnalisé */
@@ -344,6 +355,22 @@ body {
     text-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.asterisk {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 2rem;
+    margin-left: 0.25rem;
+    vertical-align: super;
+}
+
+.asterisk-note {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: 0.75rem;
+    opacity: 0.7;
+    font-style: italic;
+}
+
 .price-info {
     position: relative;
     z-index: 1;
@@ -478,6 +505,56 @@ body {
 
 .form-input::placeholder {
     color: #9ca3af;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.375rem;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+}
+
+/* Upload de fichier */
+.file-upload-wrapper {
+    position: relative;
+}
+
+.file-input {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.file-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.25rem;
+    border: 2px dashed #e5e7eb;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    background: var(--color-white);
+    color: var(--color-text-light);
+}
+
+.file-label:hover {
+    border-color: var(--color-primary);
+    background: #f9fafb;
+}
+
+.file-input:focus + .file-label {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.file-label svg {
+    flex-shrink: 0;
 }
 
 .btn-submit {

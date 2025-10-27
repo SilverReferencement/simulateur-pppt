@@ -1,28 +1,37 @@
 // Simulateur PPPT - Calculateur de Prix
-// Version 2.0 - Avec formulaire email
+// Version 3.0 - Avec code postal, upload PDF, Google Sheets
 // Configuration
 const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
 const SHEET_NAME = 'Feuille 1';
+const QUOTES_SHEET_ID = '1GiPN9N2rb4vRqdGamQLPNoC0i7wRQaXAon5D9slf4og';
+
+// Codes postaux Île-de-France (sans astérisque)
+const IDF_POSTAL_CODES = ['75', '92', '93', '94', '77', '78', '95'];
 
 // État de l'application
 let pricingData = [];
 let currentLots = 1;
 let includeDPE = false;
 let currentBuildings = 1;
+let selectedFile = null;
 
 // Éléments DOM
 const lotsSlider = document.getElementById('lots-slider');
-const lotsDisplay = document.getElementById('lots-display');
+const lotsInput = document.getElementById('lots-input');
 const sliderProgress = document.getElementById('slider-progress');
 const dpeToggle = document.getElementById('dpe-toggle');
 const priceDisplay = document.getElementById('price-display');
 const priceInfo = document.getElementById('price-info');
+const priceAsterisk = document.getElementById('price-asterisk');
+const asteriskNote = document.getElementById('asterisk-note');
 const buildingBtns = document.querySelectorAll('.building-btn');
 const emailQuoteBtn = document.getElementById('email-quote-btn');
 const emailForm = document.getElementById('email-form');
 const submitQuoteBtn = document.getElementById('submit-quote-btn');
 const emailInput = document.getElementById('email-input');
-const dpeInput = document.getElementById('dpe-input');
+const postalCodeInput = document.getElementById('postal-code-input');
+const dpeFileInput = document.getElementById('dpe-file-input');
+const fileName = document.getElementById('file-name');
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -52,8 +61,28 @@ function setupEventListeners() {
     // Slider de lots
     lotsSlider.addEventListener('input', (e) => {
         currentLots = parseInt(e.target.value);
-        lotsDisplay.textContent = currentLots;
+        lotsInput.value = currentLots;
         updateSliderProgress();
+        calculateAndDisplayPrice();
+    });
+
+    // Input manuel des lots
+    lotsInput.addEventListener('input', (e) => {
+        let value = parseInt(e.target.value) || 1;
+        if (value < 1) value = 1;
+        if (value > 999) value = 999;
+
+        currentLots = value;
+
+        // Mettre à jour le slider si la valeur est dans la plage
+        if (value <= 150) {
+            lotsSlider.value = value;
+            updateSliderProgress();
+        } else {
+            lotsSlider.value = 150;
+            sliderProgress.style.width = '100%';
+        }
+
         calculateAndDisplayPrice();
     });
 
@@ -61,19 +90,34 @@ function setupEventListeners() {
     dpeToggle.addEventListener('change', (e) => {
         includeDPE = e.target.checked;
         calculateAndDisplayPrice();
+        checkAsteriskDisplay();
     });
 
     // Sélecteur de bâtiments
     buildingBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Retirer la classe active de tous les boutons
             buildingBtns.forEach(b => b.classList.remove('active'));
-            // Ajouter la classe active au bouton cliqué
             btn.classList.add('active');
-            // Mettre à jour le nombre de bâtiments
             currentBuildings = parseInt(btn.dataset.buildings);
             calculateAndDisplayPrice();
         });
+    });
+
+    // Code postal (pour l'astérisque)
+    postalCodeInput.addEventListener('input', () => {
+        checkAsteriskDisplay();
+    });
+
+    // Upload de fichier
+    dpeFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+        } else {
+            selectedFile = null;
+            fileName.textContent = 'Choisir un fichier PDF/Image';
+        }
     });
 
     // Bouton pour afficher le formulaire email
@@ -104,9 +148,7 @@ function setupEventListeners() {
  */
 async function loadPricingData() {
     try {
-        // URL pour récupérer les données en CSV
         const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-
         const response = await fetch(url);
 
         if (!response.ok) {
@@ -133,7 +175,6 @@ function parseCSV(csv) {
     const lines = csv.split('\n').filter(line => line.trim());
     const data = [];
 
-    // Ignorer la première ligne (en-têtes)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].replace(/"/g, '').trim();
         if (!line) continue;
@@ -175,23 +216,17 @@ function useFallbackData() {
  * Calcul du prix en fonction du nombre de lots et de l'option DPE
  */
 function calculatePrice(lots, withDPE, buildings) {
-    // Trouver la tranche dans les données du tableau
     const tier = pricingData.find(t => lots >= t.lotsMin && lots <= t.lotsMax);
 
     let basePrice = 0;
 
     if (tier) {
-        // Le nombre de lots est dans une tranche du tableau
         basePrice = withDPE ? tier.prixAvecDPE : tier.prixSansDPE;
     } else {
-        // Pour les lots au-delà du tableau
         const maxTier = pricingData[pricingData.length - 1];
         const maxLotsInTable = maxTier.lotsMax;
 
         if (lots > maxLotsInTable) {
-            // Calcul pour plus de 40 lots (ou le max du tableau)
-            // Prix maximum : 4990€ sans DPE à 250+ lots, 7490€ avec DPE à 250+ lots
-
             const maxLots = 250;
             const priceAtMaxTier = withDPE ? maxTier.prixAvecDPE : maxTier.prixSansDPE;
             const priceAtMaxLots = withDPE ? 7490 : 4990;
@@ -199,7 +234,6 @@ function calculatePrice(lots, withDPE, buildings) {
             if (lots >= maxLots) {
                 basePrice = priceAtMaxLots;
             } else {
-                // Interpolation linéaire entre le max du tableau et 250 lots
                 const lotRange = maxLots - maxLotsInTable;
                 const priceRange = priceAtMaxLots - priceAtMaxTier;
                 const lotsDifference = lots - maxLotsInTable;
@@ -207,13 +241,34 @@ function calculatePrice(lots, withDPE, buildings) {
                 basePrice = Math.round(priceAtMaxTier + (priceRange * lotsDifference / lotRange));
             }
         } else {
-            // Par défaut (ne devrait pas arriver)
             basePrice = withDPE ? pricingData[0].prixAvecDPE : pricingData[0].prixSansDPE;
         }
     }
 
-    // Multiplier par le nombre de bâtiments
     return basePrice * buildings;
+}
+
+/**
+ * Vérifier si l'astérisque doit être affiché
+ */
+function checkAsteriskDisplay() {
+    const postalCode = postalCodeInput.value.trim();
+
+    if (postalCode.length >= 2 && includeDPE) {
+        const departement = postalCode.substring(0, 2);
+        const isIDF = IDF_POSTAL_CODES.includes(departement);
+
+        if (!isIDF) {
+            priceAsterisk.style.display = 'inline';
+            asteriskNote.style.display = 'block';
+        } else {
+            priceAsterisk.style.display = 'none';
+            asteriskNote.style.display = 'none';
+        }
+    } else {
+        priceAsterisk.style.display = 'none';
+        asteriskNote.style.display = 'none';
+    }
 }
 
 /**
@@ -223,7 +278,8 @@ function calculateAndDisplayPrice() {
     const price = calculatePrice(currentLots, includeDPE, currentBuildings);
 
     // Mise à jour du prix
-    priceDisplay.textContent = `${price.toLocaleString('fr-FR')} €`;
+    const priceText = `${price.toLocaleString('fr-FR')} €`;
+    priceDisplay.childNodes[0].textContent = priceText;
 
     // Mise à jour des informations
     const dpeText = includeDPE ? 'Avec DPE' : 'Sans DPE';
@@ -237,6 +293,9 @@ function calculateAndDisplayPrice() {
     setTimeout(() => {
         priceDisplay.style.transform = 'scale(1)';
     }, 200);
+
+    // Vérifier l'astérisque
+    checkAsteriskDisplay();
 }
 
 /**
@@ -254,13 +313,13 @@ function updateSliderProgress() {
 /**
  * Gestion de la soumission du devis
  */
-function handleQuoteSubmission() {
+async function handleQuoteSubmission() {
     const email = emailInput.value.trim();
-    const dpe = dpeInput.value.trim();
+    const postalCode = postalCodeInput.value.trim();
 
     // Validation basique
-    if (!email || !dpe) {
-        alert('Veuillez remplir tous les champs');
+    if (!email || !postalCode) {
+        alert('Veuillez remplir tous les champs obligatoires');
         return;
     }
 
@@ -271,22 +330,42 @@ function handleQuoteSubmission() {
         return;
     }
 
+    // Validation code postal
+    if (!/^[0-9]{5}$/.test(postalCode)) {
+        alert('Le code postal doit contenir exactement 5 chiffres');
+        return;
+    }
+
     const price = calculatePrice(currentLots, includeDPE, currentBuildings);
+    const departement = postalCode.substring(0, 2);
+    const isIDF = IDF_POSTAL_CODES.includes(departement);
 
     // Créer le contenu du devis
     const quoteData = {
         email: email,
-        dpe: dpe,
+        postalCode: postalCode,
         lots: currentLots,
         buildings: currentBuildings,
         includeDPE: includeDPE,
         price: price,
-        date: new Date().toLocaleDateString('fr-FR')
+        department: departement,
+        isIDF: isIDF,
+        hasFile: selectedFile !== null,
+        fileName: selectedFile ? selectedFile.name : '',
+        date: new Date().toISOString(),
+        timestamp: Date.now()
     };
 
-    // Ici vous pouvez envoyer les données à votre backend
-    // Pour l'instant, on simule l'envoi
+    // Log pour debug
     console.log('Devis à envoyer:', quoteData);
+
+    // TODO: Envoyer à votre backend pour:
+    // 1. Sauvegarder dans Google Sheets (QUOTES_SHEET_ID)
+    // 2. Uploader le fichier PDF si présent
+    // 3. Envoyer l'email
+
+    // Simulation de l'envoi
+    await saveToGoogleSheets(quoteData);
 
     // Afficher un message de confirmation
     submitQuoteBtn.innerHTML = `
@@ -299,25 +378,61 @@ function handleQuoteSubmission() {
 
     // Réinitialiser le formulaire après 3 secondes
     setTimeout(() => {
-        emailInput.value = '';
-        dpeInput.value = '';
-        emailForm.style.display = 'none';
-        emailQuoteBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                <polyline points="22,6 12,13 2,6"></polyline>
-            </svg>
-            Je veux recevoir un devis par email
-        `;
-        submitQuoteBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Recevoir le devis par email
-        `;
-        submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+        resetForm();
     }, 3000);
 }
 
+/**
+ * Sauvegarder dans Google Sheets
+ * NOTE: Ceci nécessite un backend car Google Sheets API nécessite OAuth
+ */
+async function saveToGoogleSheets(data) {
+    // IMPORTANT: Cette fonction nécessite un backend
+    // Vous devez créer une API qui:
+    // 1. Reçoit les données
+    // 2. S'authentifie avec Google Sheets API
+    // 3. Ajoute une ligne dans le Sheet
+
+    console.log('⚠️ BACKEND REQUIS: Enregistrement dans Google Sheets');
+    console.log('Sheet ID:', QUOTES_SHEET_ID);
+    console.log('Données à enregistrer:', data);
+
+    // Exemple d'appel API (à implémenter):
+    // const response = await fetch('YOUR_BACKEND_URL/api/save-quote', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify(data)
+    // });
+}
+
+/**
+ * Réinitialiser le formulaire
+ */
+function resetForm() {
+    emailInput.value = '';
+    postalCodeInput.value = '';
+    dpeFileInput.value = '';
+    selectedFile = null;
+    fileName.textContent = 'Choisir un fichier PDF/Image';
+    emailForm.style.display = 'none';
+    emailQuoteBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+            <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+        Je veux recevoir un devis par email
+    `;
+    submitQuoteBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Recevoir le devis par email
+    `;
+    submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+    checkAsteriskDisplay();
+}
+
 // Transition douce pour le prix
-priceDisplay.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+if (priceDisplay) {
+    priceDisplay.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1)';
+}
