@@ -15,6 +15,25 @@
             </div>
 
             <div class="content">
+                <!-- Code postal (en premier) -->
+                <div class="input-group">
+                    <label for="postal-code-main" class="label-text">Code postal</label>
+                    <input type="text" id="postal-code-main" class="form-input-main" placeholder="75001" pattern="[0-9]{5}" maxlength="5">
+                    <small class="form-hint">Nécessaire pour calculer le tarif précis</small>
+                </div>
+
+                <!-- Nombre d'immeubles -->
+                <div class="input-group">
+                    <label>
+                        <span class="label-text">Nombre d'immeubles</span>
+                    </label>
+                    <div class="building-selector">
+                        <button class="building-btn active" data-buildings="1">1</button>
+                        <button class="building-btn" data-buildings="2">2</button>
+                        <button class="building-btn" data-buildings="3">3+</button>
+                    </div>
+                </div>
+
                 <!-- Nombre de lots avec slider et input manuel -->
                 <div class="input-group">
                     <label for="lots-slider">
@@ -36,18 +55,6 @@
                     <div class="slider-labels">
                         <span>1</span>
                         <span>150+</span>
-                    </div>
-                </div>
-
-                <!-- Nombre d'immeubles -->
-                <div class="input-group">
-                    <label>
-                        <span class="label-text">Nombre d'immeubles</span>
-                    </label>
-                    <div class="building-selector">
-                        <button class="building-btn active" data-buildings="1">1</button>
-                        <button class="building-btn" data-buildings="2">2</button>
-                        <button class="building-btn" data-buildings="3">3+</button>
                     </div>
                 </div>
 
@@ -94,11 +101,6 @@
                     <div class="form-group">
                         <label for="email-input" class="form-label">Votre email</label>
                         <input type="email" id="email-input" class="form-input" placeholder="exemple@email.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="postal-code-input" class="form-label">Code postal</label>
-                        <input type="text" id="postal-code-input" class="form-input" placeholder="75001" pattern="[0-9]{5}" maxlength="5" required>
-                        <small class="form-hint">5 chiffres requis</small>
                     </div>
                     <div class="form-group">
                         <label for="dpe-file-input" class="form-label">Dernier DPE collectif (optionnel)</label>
