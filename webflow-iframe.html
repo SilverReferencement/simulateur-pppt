@@ -12,21 +12,18 @@
 .pppt-iframe-wrapper {
     position: relative;
     width: 100%;
-    height: 0;
-    padding-bottom: 120%; /* Ratio pour la hauteur */
-    overflow: hidden;
+    min-height: 1200px; /* Hauteur minimale pour contenir tout le simulateur */
     border-radius: 24px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: visible;
 }
 
 .pppt-iframe-wrapper iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
+    height: 1200px; /* Hauteur suffisante pour éviter le scroll interne */
     border: none;
     border-radius: 24px;
+    display: block;
 }
 
 /* Loader pendant le chargement */
@@ -63,7 +60,11 @@
 /* Responsive */
 @media (max-width: 768px) {
     .pppt-iframe-wrapper {
-        padding-bottom: 150%; /* Plus de hauteur sur mobile */
+        min-height: 1400px; /* Plus de hauteur sur mobile */
+    }
+
+    .pppt-iframe-wrapper iframe {
+        height: 1400px;
     }
 }
 </style>
