@@ -12,11 +12,23 @@ const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
  * Authentification avec Google Drive API
  */
 async function getAuthClient() {
-    const auth = new google.auth.GoogleAuth({
-        keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+    // Support pour Vercel : utiliser JSON depuis variable d'environnement
+    // ou fichier local pour développement
+    const authConfig = {
         scopes: SCOPES,
-    });
+    };
 
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+        // Production (Vercel) : utiliser la variable d'environnement
+        authConfig.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+        // Développement local : utiliser le fichier
+        authConfig.keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    } else {
+        throw new Error('Google credentials not configured. Set GOOGLE_SERVICE_ACCOUNT_JSON or GOOGLE_APPLICATION_CREDENTIALS');
+    }
+
+    const auth = new google.auth.GoogleAuth(authConfig);
     return await auth.getClient();
 }
 
