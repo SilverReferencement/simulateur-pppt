@@ -1,0 +1,472 @@
+<!-- SIMULATEUR PPPT - Code à copier dans Webflow (Élément Embed) -->
+<style>
+:root {
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --color-primary: #667eea;
+    --color-text-dark: #1f2937;
+    --color-text-light: #6b7280;
+    --color-white: #ffffff;
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+}
+
+.pppt-simulator * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.pppt-simulator {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.pppt-card {
+    background: var(--color-white);
+    border-radius: 24px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.pppt-header {
+    background: var(--gradient-primary);
+    color: var(--color-white);
+    padding: 3rem 2rem;
+    text-align: center;
+}
+
+.pppt-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.pppt-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.95;
+}
+
+.pppt-content {
+    padding: 2.5rem 2rem;
+}
+
+.pppt-input-group {
+    margin-bottom: 2.5rem;
+}
+
+.pppt-input-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.pppt-label-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-text-dark);
+}
+
+.pppt-lots-value {
+    font-size: 2rem;
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    min-width: 80px;
+    text-align: right;
+}
+
+.pppt-slider-container {
+    position: relative;
+    height: 12px;
+    margin-bottom: 0.5rem;
+}
+
+.pppt-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 12px;
+    background: transparent;
+    outline: none;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+}
+
+.pppt-slider-track {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 999px;
+    z-index: 0;
+}
+
+.pppt-slider-progress {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    height: 8px;
+    background: var(--gradient-primary);
+    border-radius: 999px;
+    z-index: 1;
+    transition: width 300ms;
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+}
+
+.pppt-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    background: var(--color-white);
+    border: 4px solid var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pppt-slider::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    background: var(--color-white);
+    border: 4px solid var(--color-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.pppt-slider-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+}
+
+.pppt-toggle-label {
+    cursor: pointer;
+}
+
+.pppt-toggle-switch {
+    position: relative;
+    width: 60px;
+    height: 32px;
+}
+
+.pppt-toggle-input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.pppt-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    border-radius: 999px;
+    transition: 300ms;
+}
+
+.pppt-toggle-slider::before {
+    position: absolute;
+    content: "";
+    height: 24px;
+    width: 24px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--color-white);
+    border-radius: 50%;
+    transition: 300ms;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pppt-toggle-input:checked + .pppt-toggle-slider {
+    background: var(--gradient-primary);
+}
+
+.pppt-toggle-input:checked + .pppt-toggle-slider::before {
+    transform: translateX(28px);
+}
+
+.pppt-price-card {
+    background: var(--gradient-primary);
+    color: var(--color-white);
+    padding: 2.5rem;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1.5rem;
+}
+
+.pppt-price-label {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+}
+
+.pppt-price-amount {
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    transition: transform 200ms;
+}
+
+.pppt-price-details {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.pppt-detail-badge,
+.pppt-detail-info {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.pppt-calculation-details {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.pppt-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    font-size: 0.95rem;
+}
+
+.pppt-detail-row:not(:last-child) {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pppt-detail-row span:first-child {
+    color: var(--color-text-light);
+    font-weight: 500;
+}
+
+.pppt-detail-row span:last-child {
+    color: var(--color-text-dark);
+    font-weight: 700;
+}
+
+.pppt-data-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #f0fdf4;
+    border-radius: 12px;
+    border: 1px solid #86efac;
+    font-size: 0.875rem;
+}
+
+.pppt-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-success);
+}
+
+.pppt-status-text {
+    color: #166534;
+    font-weight: 500;
+}
+</style>
+
+<div class="pppt-simulator">
+    <div class="pppt-card">
+        <div class="pppt-header">
+            <h1>Simulateur PPPT</h1>
+            <p class="pppt-subtitle">Calculez votre tarif en fonction du nombre de lots</p>
+        </div>
+
+        <div class="pppt-content">
+            <div class="pppt-input-group">
+                <label for="pppt-lots-slider">
+                    <span class="pppt-label-text">Nombre de lots</span>
+                    <span class="pppt-lots-value" id="pppt-lots-display">1</span>
+                </label>
+                <div class="pppt-slider-container">
+                    <input type="range" id="pppt-lots-slider" min="1" max="300" value="1" class="pppt-slider">
+                    <div class="pppt-slider-track"></div>
+                    <div class="pppt-slider-progress" id="pppt-slider-progress"></div>
+                </div>
+                <div class="pppt-slider-labels">
+                    <span>1</span>
+                    <span>300+</span>
+                </div>
+            </div>
+
+            <div class="pppt-input-group">
+                <label class="pppt-toggle-label">
+                    <span class="pppt-label-text">Inclure le DPE</span>
+                    <div class="pppt-toggle-switch">
+                        <input type="checkbox" id="pppt-dpe-toggle" class="pppt-toggle-input">
+                        <span class="pppt-toggle-slider"></span>
+                    </div>
+                </label>
+            </div>
+
+            <div class="pppt-price-card">
+                <div class="pppt-price-label">Prix total</div>
+                <div class="pppt-price-amount" id="pppt-price-display">990 €</div>
+                <div class="pppt-price-details" id="pppt-price-details">
+                    <span class="pppt-detail-badge">Sans DPE</span>
+                    <span class="pppt-detail-info">1 lot</span>
+                </div>
+            </div>
+
+            <div class="pppt-calculation-details">
+                <div class="pppt-detail-row">
+                    <span>Tranche tarifaire</span>
+                    <span id="pppt-tier-info">1 - 20 lots</span>
+                </div>
+                <div class="pppt-detail-row">
+                    <span>Prix unitaire moyen</span>
+                    <span id="pppt-unit-price">990 €/lot</span>
+                </div>
+            </div>
+
+            <div class="pppt-data-status" id="pppt-data-status">
+                <span class="pppt-status-dot"></span>
+                <span class="pppt-status-text">Tarifs chargés avec succès</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
+    const SHEET_NAME = 'Feuille 1';
+
+    let pricingData = [];
+    let currentLots = 1;
+    let includeDPE = false;
+
+    const lotsSlider = document.getElementById('pppt-lots-slider');
+    const lotsDisplay = document.getElementById('pppt-lots-display');
+    const sliderProgress = document.getElementById('pppt-slider-progress');
+    const dpeToggle = document.getElementById('pppt-dpe-toggle');
+    const priceDisplay = document.getElementById('pppt-price-display');
+    const priceDetails = document.getElementById('pppt-price-details');
+    const tierInfo = document.getElementById('pppt-tier-info');
+    const unitPrice = document.getElementById('pppt-unit-price');
+
+    async function loadPricingData() {
+        try {
+            const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+            const response = await fetch(url);
+            const csvText = await response.text();
+            const lines = csvText.split('\n').filter(line => line.trim());
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].replace(/"/g, '').trim();
+                if (!line) continue;
+                const values = line.split(',');
+                if (values.length >= 4) {
+                    const lotsMin = parseInt(values[0]);
+                    const lotsMax = parseInt(values[1]);
+                    const prixSansDPE = parseFloat(values[2]);
+                    const prixAvecDPE = parseFloat(values[3]);
+                    if (!isNaN(lotsMin) && !isNaN(lotsMax)) {
+                        pricingData.push({lotsMin, lotsMax, prixSansDPE, prixAvecDPE});
+                    }
+                }
+            }
+            if (pricingData.length === 0) throw new Error('No data');
+        } catch (error) {
+            pricingData = [
+                { lotsMin: 1, lotsMax: 20, prixSansDPE: 990, prixAvecDPE: 2490 },
+                { lotsMin: 21, lotsMax: 40, prixSansDPE: 1490, prixAvecDPE: 3490 }
+            ];
+        }
+        calculateAndDisplayPrice();
+    }
+
+    function calculatePrice(lots, withDPE) {
+        const tier = pricingData.find(t => lots >= t.lotsMin && lots <= t.lotsMax);
+        if (tier) {
+            return withDPE ? tier.prixAvecDPE : tier.prixSansDPE;
+        }
+        const maxTier = pricingData[pricingData.length - 1];
+        const maxLotsInTable = maxTier.lotsMax;
+        if (lots > maxLotsInTable) {
+            const maxLots = 250;
+            const priceAtMaxTier = withDPE ? maxTier.prixAvecDPE : maxTier.prixSansDPE;
+            const priceAtMaxLots = withDPE ? 7490 : 4990;
+            if (lots >= maxLots) return priceAtMaxLots;
+            const lotRange = maxLots - maxLotsInTable;
+            const priceRange = priceAtMaxLots - priceAtMaxTier;
+            const lotsDifference = lots - maxLotsInTable;
+            return Math.round(priceAtMaxTier + (priceRange * lotsDifference / lotRange));
+        }
+        return withDPE ? pricingData[0].prixAvecDPE : pricingData[0].prixSansDPE;
+    }
+
+    function calculateAndDisplayPrice() {
+        const price = calculatePrice(currentLots, includeDPE);
+        const unitPriceValue = (price / currentLots).toFixed(2);
+
+        priceDisplay.textContent = `${price.toLocaleString('fr-FR')} €`;
+
+        const dpeBadge = includeDPE ? '<span class="pppt-detail-badge">Avec DPE</span>' : '<span class="pppt-detail-badge">Sans DPE</span>';
+        const lotsInfo = `<span class="pppt-detail-info">${currentLots} lot${currentLots > 1 ? 's' : ''}</span>`;
+        priceDetails.innerHTML = dpeBadge + lotsInfo;
+
+        const tier = pricingData.find(t => currentLots >= t.lotsMin && currentLots <= t.lotsMax);
+        if (tier) {
+            tierInfo.textContent = `${tier.lotsMin} - ${tier.lotsMax} lots`;
+        } else {
+            const maxTier = pricingData[pricingData.length - 1];
+            if (currentLots > maxTier.lotsMax) {
+                tierInfo.textContent = `Plus de ${maxTier.lotsMax} lots`;
+            }
+        }
+
+        unitPrice.textContent = `${unitPriceValue} €/lot`;
+    }
+
+    function updateSliderProgress() {
+        const percentage = ((currentLots - 1) / 299) * 100;
+        sliderProgress.style.width = `${percentage}%`;
+    }
+
+    lotsSlider.addEventListener('input', (e) => {
+        currentLots = parseInt(e.target.value);
+        lotsDisplay.textContent = currentLots;
+        updateSliderProgress();
+        calculateAndDisplayPrice();
+    });
+
+    dpeToggle.addEventListener('change', (e) => {
+        includeDPE = e.target.checked;
+        calculateAndDisplayPrice();
+    });
+
+    loadPricingData();
+    updateSliderProgress();
+})();
+</script>
