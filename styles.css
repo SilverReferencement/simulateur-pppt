@@ -1,16 +1,17 @@
 :root {
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    --gradient-bg: linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 50%, #fce7f3 100%);
+    /* Variante 1 : Vert Émeraude Professionnel */
+    --gradient-primary: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%);
+    --gradient-secondary: linear-gradient(135deg, #5BC0A0 0%, #3DA280 100%);
+    --gradient-accent: linear-gradient(135deg, #3DA280 0%, #45B8AC 100%);
+    --gradient-success: linear-gradient(135deg, #52D49A 0%, #3DA280 100%);
+    --gradient-bg: linear-gradient(135deg, #E8F5F1 0%, #F0F9F6 50%, #E3F2ED 100%);
 
-    --color-primary: #667eea;
-    --color-secondary: #764ba2;
+    --color-primary: #3DA280;
+    --color-secondary: #2D7A5F;
     --color-text-dark: #1f2937;
     --color-text-light: #6b7280;
     --color-white: #ffffff;
-    --color-success: #10b981;
+    --color-success: #52D49A;
     --color-warning: #f59e0b;
 
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
