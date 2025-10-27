@@ -1,19 +1,21 @@
-# Système d'Automatisation Script.js
+# Système d'Automatisation Simulateur PPPT
 
-Ce système gère automatiquement le versionnage et la synchronisation de votre fichier `script.js`.
+Ce système gère automatiquement le versionnage et la synchronisation de vos fichiers du simulateur PPPT.
 
 ## 📁 Structure
 
 ```
 Automatisation Création simulateur Prix PPPT/
-├── script.js                  # Votre script principal
-├── archive-and-update.js      # Script d'automatisation
+├── script.js                  # Logique du simulateur
+├── index.html                 # Interface du simulateur
+├── styles.css                 # Design moderne 2025
+├── archive-and-update.js      # Script d'automatisation intelligent
 ├── update.bat                 # Lancer l'archivage et la sync
 ├── setup-github.bat           # Configuration initiale GitHub
 └── OLD/                       # Dossier des versions archivées
-    ├── script_1.js
-    ├── script_2.js
-    └── script_3.js
+    ├── script_1.js, script_2.js, script_3.js, script_4.js
+    ├── index_1.html, index_2.html
+    └── styles_1.css, styles_2.css
 ```
 
 ## 🚀 Installation
@@ -37,11 +39,13 @@ Pour l'authentification, utilisez un Personal Access Token :
 
 ### Workflow standard :
 
-1. **Modifiez** `script.js` avec vos changements
+1. **Modifiez** vos fichiers (`script.js`, `index.html`, ou `styles.css`)
 2. **Exécutez** `update.bat`
 3. **C'est tout !** Le système va :
-   - Archiver l'ancienne version dans `OLD/script_N.js`
-   - Pousser la nouvelle version sur GitHub
+   - ✅ Détecter automatiquement les fichiers modifiés avec Git
+   - ✅ Archiver uniquement les fichiers qui ont changé
+   - ✅ Créer des versions séparées par fichier (script_4.js, index_2.html, styles_3.css)
+   - ✅ Pousser automatiquement sur GitHub
 
 ### Ou manuellement avec Node.js :
 
@@ -49,18 +53,44 @@ Pour l'authentification, utilisez un Personal Access Token :
 node archive-and-update.js
 ```
 
+### 🎯 Archivage intelligent
+
+Le système archive **uniquement les fichiers modifiés** :
+- Si vous modifiez seulement `script.js` → seul `script_N.js` est archivé
+- Si vous modifiez `index.html` et `styles.css` → `index_N.html` et `styles_N.css` sont archivés
+- Si aucun fichier n'est modifié → aucun archivage (message de confirmation)
+
+Chaque fichier a sa propre numérotation indépendante !
+
 ## 🔧 Fonctionnalités
 
-- ✅ Archivage automatique avec numérotation incrémentale
-- ✅ Synchronisation GitHub automatique
-- ✅ Détection intelligente du prochain numéro de version
+### Système d'archivage
+- ✅ Détection automatique des fichiers modifiés via Git
+- ✅ Archivage intelligent (uniquement les fichiers changés)
+- ✅ Numérotation indépendante par fichier
 - ✅ Création automatique du dossier OLD si nécessaire
+
+### Simulateur PPPT
+- ✅ Design moderne 2025 avec dégradés et animations
+- ✅ Slider interactif pour sélectionner 1-300 lots
+- ✅ Toggle DPE (Diagnostic de Performance Énergétique)
+- ✅ Intégration Google Sheets pour tarifs dynamiques
+- ✅ Calcul automatique avec interpolation linéaire (40-250 lots)
+- ✅ Prix plafonnés : 4990€ sans DPE, 7490€ avec DPE (250+ lots)
+- ✅ Téléchargement de devis
+- ✅ Responsive design
+
+### Synchronisation
+- ✅ Push automatique sur GitHub après modification
+- ✅ Messages de commit détaillés
+- ✅ Gestion des erreurs et messages informatifs
 
 ## 📌 Notes
 
-- Le script actuel (`script.js`) contient un simple "Hello World" pour les tests
 - Les versions archivées sont conservées indéfiniment dans le dossier OLD
+- Chaque fichier (script.js, index.html, styles.css) a sa propre série de versions
 - Si GitHub n'est pas configuré, seul l'archivage local sera effectué
+- Le simulateur charge les tarifs depuis Google Sheets en temps réel
 
 ## 🔗 Repository GitHub
 
