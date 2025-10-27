@@ -1,4 +1,5 @@
 // Simulateur PPPT - Calculateur de Prix
+// Version 1.1 - Test du système d'archivage automatique
 // Configuration
 const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
 const SHEET_NAME = 'Feuille 1';
