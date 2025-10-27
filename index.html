@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur PPPT - Calculateur de Prix</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="simulator-card">
+            <div class="header">
+                <h1>Simulateur PPPT</h1>
+                <p class="subtitle">Calculez votre tarif en fonction du nombre de lots</p>
+            </div>
+
+            <div class="content">
+                <!-- Nombre de lots avec slider -->
+                <div class="input-group">
+                    <label for="lots-slider">
+                        <span class="label-text">Nombre de lots</span>
+                        <span class="lots-value" id="lots-display">1</span>
+                    </label>
+                    <div class="slider-container">
+                        <input
+                            type="range"
+                            id="lots-slider"
+                            min="1"
+                            max="300"
+                            value="1"
+                            class="slider"
+                        >
+                        <div class="slider-track"></div>
+                        <div class="slider-progress" id="slider-progress"></div>
+                    </div>
+                    <div class="slider-labels">
+                        <span>1</span>
+                        <span>300+</span>
+                    </div>
+                </div>
+
+                <!-- Option DPE -->
+                <div class="input-group">
+                    <label class="toggle-label">
+                        <span class="label-text">Inclure le DPE</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="dpe-toggle" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Résultat du prix -->
+                <div class="result-section">
+                    <div class="price-card">
+                        <div class="price-label">Prix total</div>
+                        <div class="price-amount" id="price-display">990 €</div>
+                        <div class="price-details" id="price-details">
+                            <span class="detail-badge">Sans DPE</span>
+                            <span class="detail-info">1 lot</span>
+                        </div>
+                    </div>
+
+                    <!-- Détails du calcul -->
+                    <div class="calculation-details" id="calculation-info">
+                        <div class="detail-row">
+                            <span>Tranche tarifaire</span>
+                            <span id="tier-info">1 - 20 lots</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Prix unitaire moyen</span>
+                            <span id="unit-price">990 €/lot</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bouton de téléchargement / devis -->
+                <div class="action-buttons">
+                    <button class="btn-primary" id="quote-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Télécharger le devis
+                    </button>
+                    <button class="btn-secondary" id="refresh-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        Réinitialiser
+                    </button>
+                </div>
+
+                <!-- Statut de chargement des données -->
+                <div class="data-status" id="data-status">
+                    <span class="status-dot loading"></span>
+                    <span class="status-text">Chargement des tarifs...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations supplémentaires -->
+        <div class="info-section">
+            <div class="info-card">
+                <h3>📊 Grille tarifaire</h3>
+                <p>Les tarifs sont calculés automatiquement en fonction du nombre de lots.</p>
+                <ul id="pricing-tiers">
+                    <li>Chargement...</li>
+                </ul>
+            </div>
+            <div class="info-card">
+                <h3>🔍 DPE (Diagnostic de Performance Énergétique)</h3>
+                <p>Option permettant d'inclure le diagnostic énergétique à votre prestation.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
