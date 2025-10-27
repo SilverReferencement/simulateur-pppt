@@ -524,6 +524,20 @@ body {
     color: var(--color-text-light);
 }
 
+/* Tooltip d'information */
+.info-tooltip {
+    display: inline-block;
+    margin-left: 0.5rem;
+    font-size: 0.9rem;
+    cursor: help;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+}
+
+.info-tooltip:hover {
+    opacity: 1;
+}
+
 /* Upload de fichier */
 .file-upload-wrapper {
     position: relative;

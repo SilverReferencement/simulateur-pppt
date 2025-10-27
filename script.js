@@ -283,7 +283,7 @@ function calculatePrice(lots, withDPE, buildings) {
 
 /**
  * Vérifier si l'astérisque doit être affiché
- * CORRECTION: Uniquement HORS Île-de-France (pas hors France)
+ * Affiche dès que code postal est HORS IDF (5 chiffres valides)
  */
 function checkAsteriskDisplay() {
     if (!postalCodeMain) return;
@@ -291,10 +291,10 @@ function checkAsteriskDisplay() {
     const postalCode = postalCodeMain.value.trim();
 
     // Afficher l'astérisque si:
-    // 1. Code postal valide (au moins 2 chiffres)
-    // 2. DPE est activé
-    // 3. Code postal HORS Île-de-France
-    if (postalCode.length >= 2 && includeDPE) {
+    // 1. Code postal valide (5 chiffres)
+    // 2. Code postal HORS Île-de-France
+    // (Pas besoin que DPE soit activé - l'astérisque s'affiche directement)
+    if (postalCode.length === 5 && /^\d{5}$/.test(postalCode)) {
         const departement = postalCode.substring(0, 2);
         const isIDF = IDF_POSTAL_CODES.includes(departement);
 
@@ -308,7 +308,7 @@ function checkAsteriskDisplay() {
             asteriskNote.style.display = 'none';
         }
     } else {
-        // Pas de DPE ou code postal invalide = pas d'astérisque
+        // Code postal invalide = pas d'astérisque
         priceAsterisk.style.display = 'none';
         asteriskNote.style.display = 'none';
     }
