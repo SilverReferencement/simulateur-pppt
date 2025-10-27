@@ -53,67 +53,54 @@
                 <!-- Résultat du prix -->
                 <div class="result-section">
                     <div class="price-card">
-                        <div class="price-label">Prix total</div>
+                        <div class="price-label">Votre tarif personnalisé</div>
                         <div class="price-amount" id="price-display">990 €</div>
-                        <div class="price-details" id="price-details">
-                            <span class="detail-badge">Sans DPE</span>
-                            <span class="detail-info">1 lot</span>
-                        </div>
-                    </div>
-
-                    <!-- Détails du calcul -->
-                    <div class="calculation-details" id="calculation-info">
-                        <div class="detail-row">
-                            <span>Tranche tarifaire</span>
-                            <span id="tier-info">1 - 20 lots</span>
-                        </div>
-                        <div class="detail-row">
-                            <span>Prix unitaire moyen</span>
-                            <span id="unit-price">990 €/lot</span>
+                        <div class="price-info" id="price-info">
+                            <span class="info-text">Sans DPE • 1 lot</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Bouton de téléchargement / devis -->
+                <!-- Nombre d'immeubles -->
+                <div class="input-group">
+                    <label>
+                        <span class="label-text">Nombre d'immeubles</span>
+                    </label>
+                    <div class="building-selector">
+                        <button class="building-btn active" data-buildings="1">1</button>
+                        <button class="building-btn" data-buildings="2">2</button>
+                        <button class="building-btn" data-buildings="3">3+</button>
+                    </div>
+                </div>
+
+                <!-- Bouton devis par email -->
                 <div class="action-buttons">
-                    <button class="btn-primary" id="quote-btn">
+                    <button class="btn-primary" id="email-quote-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="7 10 12 15 17 10"></polyline>
-                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
                         </svg>
-                        Télécharger le devis
-                    </button>
-                    <button class="btn-secondary" id="refresh-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="23 4 23 10 17 10"></polyline>
-                            <polyline points="1 20 1 14 7 14"></polyline>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                        </svg>
-                        Réinitialiser
+                        Je veux recevoir un devis par email
                     </button>
                 </div>
 
-                <!-- Statut de chargement des données -->
-                <div class="data-status" id="data-status">
-                    <span class="status-dot loading"></span>
-                    <span class="status-text">Chargement des tarifs...</span>
+                <!-- Formulaire email (caché par défaut) -->
+                <div class="email-form" id="email-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="email-input" class="form-label">Votre email</label>
+                        <input type="email" id="email-input" class="form-input" placeholder="exemple@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dpe-input" class="form-label">Dernier DPE collectif</label>
+                        <input type="text" id="dpe-input" class="form-input" placeholder="Ex: C, D, E..." required>
+                    </div>
+                    <button class="btn-submit" id="submit-quote-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Recevoir le devis par email
+                    </button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Informations supplémentaires -->
-        <div class="info-section">
-            <div class="info-card">
-                <h3>📊 Grille tarifaire</h3>
-                <p>Les tarifs sont calculés automatiquement en fonction du nombre de lots.</p>
-                <ul id="pricing-tiers">
-                    <li>Chargement...</li>
-                </ul>
-            </div>
-            <div class="info-card">
-                <h3>🔍 DPE (Diagnostic de Performance Énergétique)</h3>
-                <p>Option permettant d'inclure le diagnostic énergétique à votre prestation.</p>
             </div>
         </div>
     </div>

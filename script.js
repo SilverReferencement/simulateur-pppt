@@ -1,5 +1,5 @@
 // Simulateur PPPT - Calculateur de Prix
-// Version 1.1 - Test du système d'archivage automatique
+// Version 2.0 - Avec formulaire email
 // Configuration
 const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
 const SHEET_NAME = 'Feuille 1';
@@ -8,6 +8,7 @@ const SHEET_NAME = 'Feuille 1';
 let pricingData = [];
 let currentLots = 1;
 let includeDPE = false;
+let currentBuildings = 1;
 
 // Éléments DOM
 const lotsSlider = document.getElementById('lots-slider');
@@ -15,13 +16,13 @@ const lotsDisplay = document.getElementById('lots-display');
 const sliderProgress = document.getElementById('slider-progress');
 const dpeToggle = document.getElementById('dpe-toggle');
 const priceDisplay = document.getElementById('price-display');
-const priceDetails = document.getElementById('price-details');
-const tierInfo = document.getElementById('tier-info');
-const unitPrice = document.getElementById('unit-price');
-const dataStatus = document.getElementById('data-status');
-const pricingTiers = document.getElementById('pricing-tiers');
-const quoteBtn = document.getElementById('quote-btn');
-const refreshBtn = document.getElementById('refresh-btn');
+const priceInfo = document.getElementById('price-info');
+const buildingBtns = document.querySelectorAll('.building-btn');
+const emailQuoteBtn = document.getElementById('email-quote-btn');
+const emailForm = document.getElementById('email-form');
+const submitQuoteBtn = document.getElementById('submit-quote-btn');
+const emailInput = document.getElementById('email-input');
+const dpeInput = document.getElementById('dpe-input');
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -37,11 +38,8 @@ async function initializeApp() {
         await loadPricingData();
         updateSliderProgress();
         calculateAndDisplayPrice();
-        displayPricingTiers();
-        updateDataStatus('success', 'Tarifs chargés avec succès');
     } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
-        updateDataStatus('error', 'Erreur de chargement des tarifs');
         // Utiliser des données par défaut en cas d'erreur
         useFallbackData();
     }
@@ -51,6 +49,7 @@ async function initializeApp() {
  * Configuration des écouteurs d'événements
  */
 function setupEventListeners() {
+    // Slider de lots
     lotsSlider.addEventListener('input', (e) => {
         currentLots = parseInt(e.target.value);
         lotsDisplay.textContent = currentLots;
@@ -58,21 +57,52 @@ function setupEventListeners() {
         calculateAndDisplayPrice();
     });
 
+    // Toggle DPE
     dpeToggle.addEventListener('change', (e) => {
         includeDPE = e.target.checked;
         calculateAndDisplayPrice();
     });
 
-    quoteBtn.addEventListener('click', downloadQuote);
-    refreshBtn.addEventListener('click', resetSimulator);
+    // Sélecteur de bâtiments
+    buildingBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Retirer la classe active de tous les boutons
+            buildingBtns.forEach(b => b.classList.remove('active'));
+            // Ajouter la classe active au bouton cliqué
+            btn.classList.add('active');
+            // Mettre à jour le nombre de bâtiments
+            currentBuildings = parseInt(btn.dataset.buildings);
+            calculateAndDisplayPrice();
+        });
+    });
+
+    // Bouton pour afficher le formulaire email
+    emailQuoteBtn.addEventListener('click', () => {
+        if (emailForm.style.display === 'none' || emailForm.style.display === '') {
+            emailForm.style.display = 'block';
+            emailQuoteBtn.textContent = 'Masquer le formulaire';
+        } else {
+            emailForm.style.display = 'none';
+            emailQuoteBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Je veux recevoir un devis par email
+            `;
+        }
+    });
+
+    // Bouton de soumission du devis
+    submitQuoteBtn.addEventListener('click', () => {
+        handleQuoteSubmission();
+    });
 }
 
 /**
  * Chargement des données depuis Google Sheets
  */
 async function loadPricingData() {
-    updateDataStatus('loading', 'Chargement des tarifs...');
-
     try {
         // URL pour récupérer les données en CSV
         const url = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
@@ -85,8 +115,6 @@ async function loadPricingData() {
 
         const csvText = await response.text();
         pricingData = parseCSV(csvText);
-
-        console.log('Données chargées:', pricingData);
 
         if (pricingData.length === 0) {
             throw new Error('Aucune donnée trouvée');
@@ -141,80 +169,68 @@ function useFallbackData() {
         { lotsMin: 21, lotsMax: 40, prixSansDPE: 1490, prixAvecDPE: 3490 }
     ];
     calculateAndDisplayPrice();
-    displayPricingTiers();
 }
 
 /**
  * Calcul du prix en fonction du nombre de lots et de l'option DPE
  */
-function calculatePrice(lots, withDPE) {
+function calculatePrice(lots, withDPE, buildings) {
     // Trouver la tranche dans les données du tableau
     const tier = pricingData.find(t => lots >= t.lotsMin && lots <= t.lotsMax);
 
+    let basePrice = 0;
+
     if (tier) {
         // Le nombre de lots est dans une tranche du tableau
-        return withDPE ? tier.prixAvecDPE : tier.prixSansDPE;
-    }
+        basePrice = withDPE ? tier.prixAvecDPE : tier.prixSansDPE;
+    } else {
+        // Pour les lots au-delà du tableau
+        const maxTier = pricingData[pricingData.length - 1];
+        const maxLotsInTable = maxTier.lotsMax;
 
-    // Pour les lots au-delà du tableau
-    const maxTier = pricingData[pricingData.length - 1];
-    const maxLotsInTable = maxTier.lotsMax;
+        if (lots > maxLotsInTable) {
+            // Calcul pour plus de 40 lots (ou le max du tableau)
+            // Prix maximum : 4990€ sans DPE à 250+ lots, 7490€ avec DPE à 250+ lots
 
-    if (lots > maxLotsInTable) {
-        // Calcul pour plus de 40 lots (ou le max du tableau)
-        // Prix maximum : 4990€ sans DPE à 250+ lots, 7490€ avec DPE à 250+ lots
+            const maxLots = 250;
+            const priceAtMaxTier = withDPE ? maxTier.prixAvecDPE : maxTier.prixSansDPE;
+            const priceAtMaxLots = withDPE ? 7490 : 4990;
 
-        const maxLots = 250;
-        const priceAtMaxTier = withDPE ? maxTier.prixAvecDPE : maxTier.prixSansDPE;
-        const priceAtMaxLots = withDPE ? 7490 : 4990;
+            if (lots >= maxLots) {
+                basePrice = priceAtMaxLots;
+            } else {
+                // Interpolation linéaire entre le max du tableau et 250 lots
+                const lotRange = maxLots - maxLotsInTable;
+                const priceRange = priceAtMaxLots - priceAtMaxTier;
+                const lotsDifference = lots - maxLotsInTable;
 
-        if (lots >= maxLots) {
-            return priceAtMaxLots;
+                basePrice = Math.round(priceAtMaxTier + (priceRange * lotsDifference / lotRange));
+            }
+        } else {
+            // Par défaut (ne devrait pas arriver)
+            basePrice = withDPE ? pricingData[0].prixAvecDPE : pricingData[0].prixSansDPE;
         }
-
-        // Interpolation linéaire entre le max du tableau et 250 lots
-        const lotRange = maxLots - maxLotsInTable;
-        const priceRange = priceAtMaxLots - priceAtMaxTier;
-        const lotsDifference = lots - maxLotsInTable;
-
-        const interpolatedPrice = priceAtMaxTier + (priceRange * lotsDifference / lotRange);
-
-        return Math.round(interpolatedPrice);
     }
 
-    // Par défaut (ne devrait pas arriver)
-    return withDPE ? pricingData[0].prixAvecDPE : pricingData[0].prixSansDPE;
+    // Multiplier par le nombre de bâtiments
+    return basePrice * buildings;
 }
 
 /**
  * Calcul et affichage du prix
  */
 function calculateAndDisplayPrice() {
-    const price = calculatePrice(currentLots, includeDPE);
-    const unitPriceValue = (price / currentLots).toFixed(2);
+    const price = calculatePrice(currentLots, includeDPE, currentBuildings);
 
     // Mise à jour du prix
     priceDisplay.textContent = `${price.toLocaleString('fr-FR')} €`;
 
-    // Mise à jour des badges
-    const dpeBadge = includeDPE
-        ? '<span class="detail-badge">Avec DPE</span>'
-        : '<span class="detail-badge">Sans DPE</span>';
-    const lotsInfo = `<span class="detail-info">${currentLots} lot${currentLots > 1 ? 's' : ''}</span>`;
-    priceDetails.innerHTML = dpeBadge + lotsInfo;
+    // Mise à jour des informations
+    const dpeText = includeDPE ? 'Avec DPE' : 'Sans DPE';
+    const buildingText = currentBuildings === 1 ? '1 immeuble' : `${currentBuildings}${currentBuildings === 3 ? '+' : ''} immeubles`;
+    const lotsText = `${currentLots} lot${currentLots > 1 ? 's' : ''}`;
 
-    // Mise à jour des informations de tranche
-    const tier = pricingData.find(t => currentLots >= t.lotsMin && currentLots <= t.lotsMax);
-    if (tier) {
-        tierInfo.textContent = `${tier.lotsMin} - ${tier.lotsMax} lots`;
-    } else {
-        const maxTier = pricingData[pricingData.length - 1];
-        if (currentLots > maxTier.lotsMax) {
-            tierInfo.textContent = `Plus de ${maxTier.lotsMax} lots`;
-        }
-    }
-
-    unitPrice.textContent = `${unitPriceValue} €/lot`;
+    priceInfo.innerHTML = `<span class="info-text">${dpeText} • ${buildingText} • ${lotsText}</span>`;
 
     // Animation du prix
     priceDisplay.style.transform = 'scale(1.05)';
@@ -236,119 +252,71 @@ function updateSliderProgress() {
 }
 
 /**
- * Affichage des tranches tarifaires
+ * Gestion de la soumission du devis
  */
-function displayPricingTiers() {
-    if (pricingData.length === 0) return;
+function handleQuoteSubmission() {
+    const email = emailInput.value.trim();
+    const dpe = dpeInput.value.trim();
 
-    const tiersHTML = pricingData.map(tier => `
-        <li>
-            <strong>${tier.lotsMin} - ${tier.lotsMax} lots :</strong>
-            ${tier.prixSansDPE}€ sans DPE, ${tier.prixAvecDPE}€ avec DPE
-        </li>
-    `).join('');
-
-    const maxTier = pricingData[pricingData.length - 1];
-    const additionalTiers = `
-        <li>
-            <strong>Plus de ${maxTier.lotsMax} lots :</strong>
-            Tarif progressif jusqu'à 4990€ sans DPE (250 lots)
-        </li>
-        <li>
-            <strong>Plus de 250 lots avec DPE :</strong>
-            Tarif plafonné à 7490€
-        </li>
-    `;
-
-    pricingTiers.innerHTML = tiersHTML + additionalTiers;
-}
-
-/**
- * Mise à jour du statut des données
- */
-function updateDataStatus(status, message) {
-    const statusDot = dataStatus.querySelector('.status-dot');
-    const statusText = dataStatus.querySelector('.status-text');
-
-    statusDot.className = 'status-dot';
-    statusText.textContent = message;
-
-    if (status === 'loading') {
-        statusDot.classList.add('loading');
-        dataStatus.style.background = '#fef3c7';
-        dataStatus.style.borderColor = '#fcd34d';
-        statusText.style.color = '#78350f';
-    } else if (status === 'success') {
-        dataStatus.style.background = '#f0fdf4';
-        dataStatus.style.borderColor = '#86efac';
-        statusText.style.color = '#166534';
-    } else if (status === 'error') {
-        dataStatus.style.background = '#fef2f2';
-        dataStatus.style.borderColor = '#fca5a5';
-        statusText.style.color = '#991b1b';
+    // Validation basique
+    if (!email || !dpe) {
+        alert('Veuillez remplir tous les champs');
+        return;
     }
-}
 
-/**
- * Téléchargement du devis
- */
-function downloadQuote() {
-    const price = calculatePrice(currentLots, includeDPE);
-    const date = new Date().toLocaleDateString('fr-FR');
+    // Validation email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('Veuillez entrer une adresse email valide');
+        return;
+    }
 
-    const quoteContent = `
-DEVIS PPPT
-==========
+    const price = calculatePrice(currentLots, includeDPE, currentBuildings);
 
-Date: ${date}
-Nombre de lots: ${currentLots}
-Option DPE: ${includeDPE ? 'Oui' : 'Non'}
+    // Créer le contenu du devis
+    const quoteData = {
+        email: email,
+        dpe: dpe,
+        lots: currentLots,
+        buildings: currentBuildings,
+        includeDPE: includeDPE,
+        price: price,
+        date: new Date().toLocaleDateString('fr-FR')
+    };
 
-Prix total: ${price.toLocaleString('fr-FR')} €
-Prix unitaire moyen: ${(price / currentLots).toFixed(2)} €/lot
+    // Ici vous pouvez envoyer les données à votre backend
+    // Pour l'instant, on simule l'envoi
+    console.log('Devis à envoyer:', quoteData);
 
----
-Tarifs valables à la date du ${date}
-Ce devis est généré automatiquement et n'a pas de valeur contractuelle.
-Pour un devis officiel, veuillez contacter notre service commercial.
-    `.trim();
+    // Afficher un message de confirmation
+    submitQuoteBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        Devis envoyé avec succès !
+    `;
+    submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
 
-    const blob = new Blob([quoteContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `devis_pppt_${currentLots}lots_${date.replace(/\//g, '-')}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    // Animation du bouton
-    quoteBtn.style.transform = 'scale(0.95)';
+    // Réinitialiser le formulaire après 3 secondes
     setTimeout(() => {
-        quoteBtn.style.transform = 'scale(1)';
-    }, 150);
-}
-
-/**
- * Réinitialisation du simulateur
- */
-function resetSimulator() {
-    currentLots = 1;
-    includeDPE = false;
-
-    lotsSlider.value = 1;
-    lotsDisplay.textContent = 1;
-    dpeToggle.checked = false;
-
-    updateSliderProgress();
-    calculateAndDisplayPrice();
-
-    // Animation du bouton
-    refreshBtn.style.transform = 'rotate(180deg)';
-    setTimeout(() => {
-        refreshBtn.style.transform = 'rotate(0deg)';
-    }, 300);
+        emailInput.value = '';
+        dpeInput.value = '';
+        emailForm.style.display = 'none';
+        emailQuoteBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            Je veux recevoir un devis par email
+        `;
+        submitQuoteBtn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Recevoir le devis par email
+        `;
+        submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+    }, 3000);
 }
 
 // Transition douce pour le prix
