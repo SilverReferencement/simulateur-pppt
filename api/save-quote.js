@@ -511,7 +511,7 @@ module.exports = async (req, res) => {
             success: true,
             quoteId,
             message: 'Devis enregistré avec succès',
-            makeWebhookCalled: makeWebhookSuccess
+            pdfGenerated: pdfBuffer !== null
         });
 
     } catch (error) {
