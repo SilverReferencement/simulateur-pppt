@@ -10,6 +10,8 @@ const path = require('path');
 // Services
 const sheetsService = require('./services/googleSheets');
 const driveService = require('./services/googleDrive');
+const emailService = require('./services/emailService');
+const pdfGenerator = require('./services/pdfGenerator');
 const { body, validationResult } = require('express-validator');
 
 const app = express();
@@ -151,14 +153,63 @@ app.post('/api/save-quote',
 
             console.log(`Quote saved: ${quoteId}`);
 
-            // TODO: Envoyer l'email au client
-            // await emailService.sendQuoteEmail(email, quoteId, price);
+            // Construire l'URL Google Sheets pour l'email interne
+            const sheetUrl = `https://docs.google.com/spreadsheets/d/${process.env.GOOGLE_SHEET_ID}`;
+
+            // Préparer les données complètes du devis pour les emails
+            const quoteData = {
+                quoteId,
+                email,
+                postalCode,
+                department: department || postalCode.substring(0, 2),
+                lots: parseInt(lots),
+                buildings: parseInt(buildings),
+                includeDPE: includeDPE === 'true' || includeDPE === true,
+                price: parseFloat(price),
+                isIDF: isIDF === 'true' || isIDF === true,
+                date: new Date().toISOString(),
+                fileUrl
+            };
+
+            // Générer le PDF du devis
+            let pdfBuffer = null;
+            let pdfGenerationError = null;
+
+            try {
+                console.log(`Generating PDF for quote ${quoteId}...`);
+                pdfBuffer = await pdfGenerator.createPdfFromTemplate(quoteData);
+                console.log(`✅ PDF generated: ${pdfBuffer.length} bytes`);
+            } catch (pdfError) {
+                console.error('⚠️ Erreur génération PDF (non bloquant):', pdfError.message);
+                pdfGenerationError = pdfError.message;
+                // Continuer sans PDF si erreur
+            }
+
+            // Envoyer l'email interne (notification)
+            try {
+                console.log('Sending internal notification email...');
+                await emailService.sendInternalEmail(quoteData, sheetUrl, fileUrl);
+                console.log('✅ Internal email sent');
+            } catch (emailError) {
+                console.error('⚠️ Erreur envoi email interne (non bloquant):', emailError.message);
+            }
+
+            // Envoyer l'email au client avec le PDF
+            try {
+                console.log(`Sending client email to ${email}...`);
+                await emailService.sendClientEmail(quoteData, pdfBuffer);
+                console.log('✅ Client email sent');
+            } catch (emailError) {
+                console.error('⚠️ Erreur envoi email client (non bloquant):', emailError.message);
+            }
 
             res.json({
                 success: true,
                 quoteId,
                 message: 'Devis enregistré avec succès',
-                fileUploaded: !!fileUrl
+                fileUploaded: !!fileUrl,
+                pdfGenerated: !!pdfBuffer,
+                emailsSent: true // On retourne toujours true car les erreurs email sont non bloquantes
             });
 
         } catch (error) {
