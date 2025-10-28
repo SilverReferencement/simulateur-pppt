@@ -103,6 +103,8 @@ async function saveToSheet(quoteData) {
  */
 async function generatePdfFromTemplate(quoteData) {
     try {
+        console.log('🔧 Generating PDF with template ID:', DOCS_TEMPLATE_ID);
+
         // Copier le template
         const copy = await drive.files.copy({
             fileId: DOCS_TEMPLATE_ID,
@@ -111,6 +113,8 @@ async function generatePdfFromTemplate(quoteData) {
                 parents: [DRIVE_FOLDER_ID]
             }
         });
+
+        console.log('✅ Template copied, doc ID:', copy.data.id);
 
         const docId = copy.data.id;
 
@@ -186,10 +190,14 @@ async function generatePdfFromTemplate(quoteData) {
         // Supprimer le document temporaire
         await drive.files.delete({ fileId: docId });
 
-        console.log('✅ PDF generated');
+        console.log('✅ PDF generated successfully');
         return Buffer.from(pdfResponse.data);
     } catch (error) {
-        console.error('⚠️ PDF generation error (non-blocking):', error.message);
+        console.error('❌ PDF generation error:', error.message);
+        console.error('Stack:', error.stack);
+        if (error.response) {
+            console.error('Response:', error.response.data);
+        }
         return null;
     }
 }
