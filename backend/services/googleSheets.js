@@ -49,27 +49,31 @@ async function generateUniqueId() {
     try {
         const sheets = await getSheetsInstance();
 
-        // Récupérer le dernier ID utilisé
+        // Récupérer tous les IDs existants
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:A`,
+            range: `${SHEET_NAME}!A2:A`,  // A2 pour ignorer le header en ligne 1
         });
 
         const rows = response.data.values || [];
 
         // Extraire les numéros des IDs existants (format: DEVIS-001)
         const existingIds = rows
-            .slice(1) // Ignorer l'en-tête
             .map(row => row[0])
-            .filter(id => id && id.startsWith('DEVIS-'))
-            .map(id => parseInt(id.replace('DEVIS-', '')))
-            .filter(num => !isNaN(num));
+            .filter(id => id && typeof id === 'string' && id.startsWith('DEVIS-'))
+            .map(id => parseInt(id.replace('DEVIS-', ''), 10))
+            .filter(num => !isNaN(num) && num > 0);
+
+        console.log('IDs existants trouvés:', existingIds);
 
         // Trouver le prochain numéro
         const nextNumber = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
 
         // Formater avec des zéros (DEVIS-001, DEVIS-002, etc.)
-        return `DEVIS-${String(nextNumber).padStart(3, '0')}`;
+        const newId = `DEVIS-${String(nextNumber).padStart(3, '0')}`;
+        console.log(`Nouveau ID généré: ${newId}`);
+
+        return newId;
 
     } catch (error) {
         console.error('Erreur génération ID:', error);
@@ -216,6 +220,39 @@ async function initializeSheet() {
             });
 
             console.log('En-têtes initialisés dans Google Sheets');
+        }
+
+        // Geler la première ligne (header)
+        try {
+            const sheetMetadata = await sheets.spreadsheets.get({
+                spreadsheetId: SPREADSHEET_ID,
+            });
+
+            const sheet = sheetMetadata.data.sheets.find(
+                s => s.properties.title === SHEET_NAME
+            );
+
+            if (sheet) {
+                await sheets.spreadsheets.batchUpdate({
+                    spreadsheetId: SPREADSHEET_ID,
+                    requestBody: {
+                        requests: [{
+                            updateSheetProperties: {
+                                properties: {
+                                    sheetId: sheet.properties.sheetId,
+                                    gridProperties: {
+                                        frozenRowCount: 1
+                                    }
+                                },
+                                fields: 'gridProperties.frozenRowCount'
+                            }
+                        }]
+                    }
+                });
+                console.log('Première ligne gelée (frozen header)');
+            }
+        } catch (freezeError) {
+            console.warn('Impossible de geler la première ligne:', freezeError.message);
         }
 
         return { success: true };
