@@ -16,8 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
-    "googleapis": "^126.0.1",
-    "multiparty": "^4.2.3"
+    "googleapis": "^126.0.1"
   },
   "engines": {
     "node": ">=18.0.0"
