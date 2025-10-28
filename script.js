@@ -410,24 +410,8 @@ async function handleQuoteSubmission() {
     // Log pour debug
     console.log('Devis à envoyer:', quoteData);
 
-    // Envoyer au backend Render
+    // Envoyer au backend Vercel
     try {
-        // Préparer les données FormData (pour supporter l'upload de fichier)
-        const formData = new FormData();
-        formData.append('email', quoteData.email);
-        formData.append('postalCode', quoteData.postalCode);
-        formData.append('lots', quoteData.lots);
-        formData.append('buildings', quoteData.buildings);
-        formData.append('includeDPE', quoteData.includeDPE);
-        formData.append('price', quoteData.price);
-        formData.append('department', quoteData.department);
-        formData.append('isIDF', quoteData.isIDF);
-
-        // Ajouter le fichier si présent
-        if (selectedFile) {
-            formData.append('dpeFile', selectedFile);
-        }
-
         // Désactiver le bouton pendant l'envoi
         submitQuoteBtn.disabled = true;
         submitQuoteBtn.innerHTML = `
@@ -437,11 +421,27 @@ async function handleQuoteSubmission() {
             Envoi en cours...
         `;
 
-        // Appel au backend Google Apps Script (instantané, pas de cold start)
+        // Préparer les données JSON (upload fichier désactivé temporairement)
+        const payload = {
+            email: quoteData.email,
+            postalCode: quoteData.postalCode,
+            lots: quoteData.lots.toString(),
+            buildings: quoteData.buildings.toString(),
+            includeDPE: quoteData.includeDPE.toString(),
+            price: quoteData.price.toString(),
+            department: quoteData.department,
+            isIDF: quoteData.isIDF.toString()
+        };
+
+        console.log('Sending to Vercel:', payload);
+
+        // Appel au backend Vercel (instantané, pas de cold start)
         const response = await fetch(BACKEND_API_URL, {
             method: 'POST',
-            body: formData,
-            redirect: 'follow'
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
 
         const result = await response.json();
