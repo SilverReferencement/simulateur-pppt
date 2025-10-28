@@ -530,48 +530,21 @@ module.exports = async (req, res) => {
         // Sauvegarder dans Sheets
         await saveToSheet(quoteData);
 
-        // Appeler Make webhook pour génération PDF
-        let makeWebhookSuccess = false;
-        if (process.env.MAKE_WEBHOOK_URL) {
-            try {
-                console.log('📤 Calling Make webhook for PDF generation...');
-                const makeResponse = await fetch(process.env.MAKE_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        quoteId: quoteData.quoteId,
-                        email: quoteData.email,
-                        postalCode: quoteData.postalCode,
-                        department: quoteData.department,
-                        lots: quoteData.lots,
-                        buildings: quoteData.buildings,
-                        includeDPE: quoteData.includeDPE,
-                        price: quoteData.price,
-                        isIDF: quoteData.isIDF,
-                        date: quoteData.date,
-                        sheetId: SPREADSHEET_ID,
-                        sheetName: SHEET_NAME
-                    })
-                });
-
-                if (makeResponse.ok) {
-                    console.log('✅ Make webhook called successfully');
-                    makeWebhookSuccess = true;
-                } else {
-                    console.error('⚠️ Make webhook failed:', makeResponse.status);
-                }
-            } catch (e) {
-                console.error('⚠️ Make webhook error (non-blocking):', e.message);
-            }
-        }
+        // Générer PDF depuis template Google Docs
+        const pdfBuffer = await generatePdfFromTemplate(quoteData);
 
         // Envoyer email interne
         try {
             await sendInternalEmail(quoteData);
         } catch (e) {
             console.error('⚠️ Internal email error (non-blocking):', e.message);
+        }
+
+        // Envoyer email client avec PDF
+        try {
+            await sendClientEmail(quoteData, pdfBuffer);
+        } catch (e) {
+            console.error('⚠️ Client email error (non-blocking):', e.message);
         }
 
         // Retour succès
