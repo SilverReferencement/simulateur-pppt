@@ -11,6 +11,10 @@ package-lock.json
 config/credentials.json
 **/credentials.json
 
+# API Keys (IMPORTANT: Never commit this!)
+SENDGRID-API-KEY.txt
+**/SENDGRID-API-KEY.txt
+
 # Logs
 logs/
 *.log
