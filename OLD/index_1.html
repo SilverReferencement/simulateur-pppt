@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur PPPT - Calculateur de Prix</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="simulator-card">
+            <div class="header">
+                <h1>Simulateur PPPT</h1>
+                <p class="subtitle">Calculez votre tarif en fonction du nombre de lots</p>
+            </div>
+
+            <div class="content">
+                <!-- Nombre de lots avec slider -->
+                <div class="input-group">
+                    <label for="lots-slider">
+                        <span class="label-text">Nombre de lots</span>
+                        <span class="lots-value" id="lots-display">1</span>
+                    </label>
+                    <div class="slider-container">
+                        <input
+                            type="range"
+                            id="lots-slider"
+                            min="1"
+                            max="300"
+                            value="1"
+                            class="slider"
+                        >
+                        <div class="slider-track"></div>
+                        <div class="slider-progress" id="slider-progress"></div>
+                    </div>
+                    <div class="slider-labels">
+                        <span>1</span>
+                        <span>300+</span>
+                    </div>
+                </div>
+
+                <!-- Option DPE -->
+                <div class="input-group">
+                    <label class="toggle-label">
+                        <span class="label-text">Inclure le DPE</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="dpe-toggle" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Résultat du prix -->
+                <div class="result-section">
+                    <div class="price-card">
+                        <div class="price-label">Votre tarif personnalisé</div>
+                        <div class="price-amount" id="price-display">990 €</div>
+                        <div class="price-info" id="price-info">
+                            <span class="info-text">Sans DPE • 1 lot</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nombre d'immeubles -->
+                <div class="input-group">
+                    <label>
+                        <span class="label-text">Nombre d'immeubles</span>
+                    </label>
+                    <div class="building-selector">
+                        <button class="building-btn active" data-buildings="1">1</button>
+                        <button class="building-btn" data-buildings="2">2</button>
+                        <button class="building-btn" data-buildings="3">3+</button>
+                    </div>
+                </div>
+
+                <!-- Bouton devis par email -->
+                <div class="action-buttons">
+                    <button class="btn-primary" id="email-quote-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        Je veux recevoir un devis par email
+                    </button>
+                </div>
+
+                <!-- Formulaire email (caché par défaut) -->
+                <div class="email-form" id="email-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="email-input" class="form-label">Votre email</label>
+                        <input type="email" id="email-input" class="form-input" placeholder="exemple@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dpe-input" class="form-label">Dernier DPE collectif</label>
+                        <input type="text" id="dpe-input" class="form-input" placeholder="Ex: C, D, E..." required>
+                    </div>
+                    <button class="btn-submit" id="submit-quote-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Recevoir le devis par email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

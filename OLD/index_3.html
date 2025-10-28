@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulateur PPPT - Calculateur de Prix</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="simulator-card">
+            <div class="header">
+                <h1>Simulateur PPPT</h1>
+                <p class="subtitle">Calculez votre tarif en fonction du nombre de lots</p>
+            </div>
+
+            <div class="content">
+                <!-- Code postal (en premier) -->
+                <div class="input-group">
+                    <label for="postal-code-main" class="label-text">Code postal</label>
+                    <input type="text" id="postal-code-main" class="form-input-main" placeholder="75001" pattern="[0-9]{5}" maxlength="5">
+                    <small class="form-hint">Nécessaire pour calculer le tarif précis</small>
+                </div>
+
+                <!-- Nombre d'immeubles -->
+                <div class="input-group">
+                    <label>
+                        <span class="label-text">Nombre d'immeubles</span>
+                    </label>
+                    <div class="building-selector">
+                        <button class="building-btn active" data-buildings="1">1</button>
+                        <button class="building-btn" data-buildings="2">2</button>
+                        <button class="building-btn" data-buildings="3">3+</button>
+                    </div>
+                </div>
+
+                <!-- Nombre de lots avec slider et input manuel -->
+                <div class="input-group">
+                    <label for="lots-slider">
+                        <span class="label-text">Nombre de lots</span>
+                        <input type="number" id="lots-input" class="lots-input" min="1" max="999" value="1">
+                    </label>
+                    <div class="slider-container">
+                        <input
+                            type="range"
+                            id="lots-slider"
+                            min="1"
+                            max="150"
+                            value="1"
+                            class="slider"
+                        >
+                        <div class="slider-track"></div>
+                        <div class="slider-progress" id="slider-progress"></div>
+                    </div>
+                    <div class="slider-labels">
+                        <span>1</span>
+                        <span>150+</span>
+                    </div>
+                </div>
+
+                <!-- Option DPE -->
+                <div class="input-group">
+                    <label class="toggle-label">
+                        <span class="label-text">Prestation DPE incluse dans le devis</span>
+                        <div class="toggle-switch">
+                            <input type="checkbox" id="dpe-toggle" class="toggle-input">
+                            <span class="toggle-slider"></span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Résultat du prix -->
+                <div class="result-section">
+                    <div class="price-card">
+                        <div class="price-label">Votre tarif personnalisé</div>
+                        <div class="price-amount" id="price-display">
+                            990 €<span class="asterisk" id="price-asterisk" style="display: none;">*</span>
+                        </div>
+                        <div class="price-info" id="price-info">
+                            <span class="info-text">Sans DPE • 1 immeuble • 1 lot</span>
+                        </div>
+                    </div>
+                    <div class="asterisk-note" id="asterisk-note" style="display: none;">
+                        * Le tarif peut très légèrement varier en fonction du tarif du DPE immeuble
+                    </div>
+                </div>
+
+                <!-- Bouton devis par email -->
+                <div class="action-buttons">
+                    <button class="btn-primary" id="email-quote-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        Je veux recevoir un devis par email
+                    </button>
+                </div>
+
+                <!-- Formulaire email (caché par défaut) -->
+                <div class="email-form" id="email-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="email-input" class="form-label">Votre email</label>
+                        <input type="email" id="email-input" class="form-input" placeholder="exemple@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dpe-file-input" class="form-label">Dernier DPE collectif (optionnel)</label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="dpe-file-input" class="file-input" accept=".pdf,.jpg,.jpeg,.png">
+                            <label for="dpe-file-input" class="file-label">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                <span id="file-name">Choisir un fichier PDF/Image</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button class="btn-submit" id="submit-quote-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Recevoir le devis par email
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
