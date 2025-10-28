@@ -79,6 +79,36 @@ app.get('/api/init-sheet', async (req, res) => {
     }
 });
 
+// Test email configuration
+app.get('/api/test-email', async (req, res) => {
+    try {
+        // Vérifier les variables d'environnement
+        const config = {
+            EMAIL_USER: process.env.EMAIL_USER ? '✅ Configuré' : '❌ Manquant',
+            EMAIL_PASSWORD: process.env.EMAIL_PASSWORD ? '✅ Configuré' : '❌ Manquant',
+            EMAIL_INTERNAL: process.env.EMAIL_INTERNAL ? '✅ Configuré' : '❌ Manquant',
+            COMPANY_NAME: process.env.COMPANY_NAME || 'Non configuré',
+            GOOGLE_DOCS_TEMPLATE_ID: process.env.GOOGLE_DOCS_TEMPLATE_ID ? '✅ Configuré' : '❌ Manquant'
+        };
+
+        // Tester la connexion email
+        const emailTest = await emailService.testEmailConnection();
+
+        res.json({
+            success: true,
+            emailConnection: emailTest ? '✅ OK' : '❌ Échec',
+            configuration: config
+        });
+    } catch (error) {
+        console.error('Erreur test email:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 // GET: Récupérer les devis (optionnel - pour admin)
 app.get('/api/quotes', async (req, res) => {
     try {
