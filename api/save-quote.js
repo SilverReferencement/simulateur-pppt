@@ -1,10 +1,6 @@
 // Vercel Serverless Function - Sauvegarder un devis
-// Endpoint principal : /api/save-quote
-
 const sgMail = require('@sendgrid/mail');
 const { google } = require('googleapis');
-const multiparty = require('multiparty');
-const { Readable } = require('stream');
 
 // Configuration SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -30,29 +26,6 @@ const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 const DOCS_TEMPLATE_ID = process.env.GOOGLE_DOCS_TEMPLATE_ID;
 
 // ==================== HELPER FUNCTIONS ====================
-
-/**
- * Parser FormData dans Vercel
- */
-function parseFormData(req) {
-    return new Promise((resolve, reject) => {
-        const form = new multiparty.Form();
-        form.parse(req, (err, fields, files) => {
-            if (err) reject(err);
-
-            const data = {};
-            for (let key in fields) {
-                data[key] = fields[key][0];
-            }
-
-            if (files.dpeFile && files.dpeFile[0]) {
-                data.dpeFile = files.dpeFile[0];
-            }
-
-            resolve(data);
-        });
-    });
-}
 
 /**
  * Générer un ID unique incrémental
@@ -117,35 +90,6 @@ async function saveToSheet(quoteData) {
     });
 
     console.log('✅ Saved to Sheets at row', nextRow);
-}
-
-/**
- * Upload fichier vers Google Drive
- */
-async function uploadToDrive(file, quoteId) {
-    if (!file) return null;
-
-    const fileMetadata = {
-        name: `DPE_${quoteId}_${file.originalFilename}`,
-        parents: [DRIVE_FOLDER_ID]
-    };
-
-    const media = {
-        mimeType: file.headers['content-type'],
-        body: require('fs').createReadStream(file.path)
-    };
-
-    const driveFile = await drive.files.create({
-        requestBody: fileMetadata,
-        media: media,
-        fields: 'id, webViewLink, name'
-    });
-
-    console.log('✅ File uploaded to Drive:', driveFile.data.name);
-    return {
-        url: driveFile.data.webViewLink,
-        name: driveFile.data.name
-    };
 }
 
 /**
@@ -247,7 +191,7 @@ async function generatePdfFromTemplate(quoteData) {
 /**
  * Envoyer email interne
  */
-async function sendInternalEmail(quoteData, fileUrl) {
+async function sendInternalEmail(quoteData) {
     const sheetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}`;
 
     const htmlBody = `
@@ -284,10 +228,6 @@ async function sendInternalEmail(quoteData, fileUrl) {
                 <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
                     <strong style="color: #3DA280;">Prix calculé:</strong> <strong style="font-size: 1.2em; color: #3DA280;">${quoteData.price} €</strong>
                 </div>
-
-                ${fileUrl ? `<div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
-                    <strong style="color: #3DA280;">Fichier DPE:</strong> <a href="${fileUrl}">📎 Télécharger</a>
-                </div>` : ''}
 
                 <div style="margin-top: 20px;">
                     <a href="${sheetUrl}" style="display: inline-block; padding: 12px 24px; background: #3DA280; color: white; text-decoration: none; border-radius: 6px;">📊 Voir dans Google Sheets</a>
@@ -541,21 +481,20 @@ module.exports = async (req, res) => {
     try {
         console.log('📥 New quote request received');
 
-        // Parser FormData
-        const data = await parseFormData(req);
+        // Parser les données (Vercel parse automatiquement le JSON)
+        const data = req.body;
+
+        // Validation basique
+        if (!data.email || !data.postalCode || !data.lots || !data.buildings || !data.price) {
+            return res.status(400).json({
+                success: false,
+                error: 'Missing required fields'
+            });
+        }
 
         // Générer ID unique
         const quoteId = await generateUniqueId();
         console.log('🆔 Generated ID:', quoteId);
-
-        // Upload fichier DPE si présent
-        let fileUrl = null;
-        let fileName = null;
-        if (data.dpeFile) {
-            const uploadResult = await uploadToDrive(data.dpeFile, quoteId);
-            fileUrl = uploadResult.url;
-            fileName = uploadResult.name;
-        }
 
         // Préparer les données
         const quoteData = {
@@ -566,11 +505,11 @@ module.exports = async (req, res) => {
             department: data.department || data.postalCode.substring(0, 2),
             lots: parseInt(data.lots),
             buildings: parseInt(data.buildings),
-            includeDPE: data.includeDPE === 'true',
+            includeDPE: data.includeDPE === 'true' || data.includeDPE === true,
             price: parseFloat(data.price),
-            isIDF: data.isIDF === 'true',
-            fileUrl,
-            fileName,
+            isIDF: data.isIDF === 'true' || data.isIDF === true,
+            fileUrl: null,
+            fileName: null,
             timestamp: Date.now()
         };
 
@@ -582,7 +521,7 @@ module.exports = async (req, res) => {
 
         // Envoyer emails
         try {
-            await sendInternalEmail(quoteData, fileUrl);
+            await sendInternalEmail(quoteData);
         } catch (e) {
             console.error('⚠️ Internal email error (non-blocking):', e.message);
         }
@@ -598,7 +537,6 @@ module.exports = async (req, res) => {
             success: true,
             quoteId,
             message: 'Devis enregistré avec succès',
-            fileUploaded: !!fileUrl,
             pdfGenerated: !!pdfBuffer
         });
 
