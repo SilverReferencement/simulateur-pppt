@@ -1,0 +1,25 @@
+{
+  "name": "pppt-simulator",
+  "version": "2.0.0",
+  "description": "PPPT Simulator - Vercel Serverless Backend",
+  "main": "index.html",
+  "scripts": {
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "pppt",
+    "simulator",
+    "vercel",
+    "serverless"
+  ],
+  "author": "SilverReferencement",
+  "license": "MIT",
+  "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
+    "googleapis": "^126.0.1",
+    "multiparty": "^4.2.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

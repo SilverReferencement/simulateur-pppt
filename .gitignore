@@ -1,3 +1,11 @@
 node_modules/
 .env
 *.log
+
+# Apps Script (deprecated - using Vercel instead)
+google-apps-script/.clasp.json
+google-apps-script/deploy.html
+google-apps-script/deploy-helper.html
+google-apps-script/appsscript.json
+google-apps-script/Code.js
+google-apps-script/*.backup
