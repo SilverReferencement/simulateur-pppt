@@ -89,6 +89,17 @@ async function saveQuote(quoteData) {
     try {
         const sheets = await getSheetsInstance();
 
+        // Trouver la prochaine ligne vide dans la colonne A
+        const existingData = await sheets.spreadsheets.values.get({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${SHEET_NAME}!A:A`,
+        });
+
+        const rows = existingData.data.values || [];
+        const nextRow = rows.length + 1; // Prochaine ligne vide
+
+        console.log(`Insertion à la ligne ${nextRow}`);
+
         // Préparer la ligne à ajouter
         const row = [
             quoteData.quoteId,                                          // A: ID
@@ -106,22 +117,22 @@ async function saveQuote(quoteData) {
             quoteData.timestamp                                          // M: Timestamp
         ];
 
-        // Ajouter la ligne au Sheet
-        const response = await sheets.spreadsheets.values.append({
+        // Écrire directement à la ligne spécifique (UPDATE au lieu de APPEND)
+        const response = await sheets.spreadsheets.values.update({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:M`,
+            range: `${SHEET_NAME}!A${nextRow}:M${nextRow}`,
             valueInputOption: 'USER_ENTERED',
             requestBody: {
                 values: [row],
             },
         });
 
-        console.log(`Devis ajouté à Google Sheets: ${quoteData.quoteId}`);
+        console.log(`Devis ajouté à Google Sheets: ${quoteData.quoteId} (ligne ${nextRow})`);
 
         return {
             success: true,
             quoteId: quoteData.quoteId,
-            range: response.data.updates.updatedRange
+            range: response.data.updatedRange
         };
 
     } catch (error) {
