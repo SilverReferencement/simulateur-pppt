@@ -1,10 +1,10 @@
 // Simulateur PPPT - Calculateur de Prix
-// Version 6.0 - Backend Google Apps Script (instantané + gratuit)
+// Version 7.0 - Backend Vercel Serverless (instantané + gratuit + auto-deploy)
 // Configuration
 const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
 const SHEET_NAME = 'Feuille 1';
 const QUOTES_SHEET_ID = '1GiPN9N2rb4vRqdGamQLPNoC0i7wRQaXAon5D9slf4og';
-const BACKEND_API_URL = 'https://script.google.com/macros/s/AKfycbxJZLg6oL6byuG2SsD-XoHhcPrtUBO9ffZRESp7vL32UmjkUAWzaw2RLl4I6T3GQJSGag/exec';
+const BACKEND_API_URL = 'https://simulateur-pppt.vercel.app/api/save-quote';
 
 // Codes postaux Île-de-France (sans astérisque)
 const IDF_POSTAL_CODES = ['75', '92', '93', '94', '77', '78', '95'];
