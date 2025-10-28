@@ -430,17 +430,29 @@ async function handleQuoteSubmission() {
         // Désactiver le bouton pendant l'envoi
         submitQuoteBtn.disabled = true;
         submitQuoteBtn.innerHTML = `
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning">
                 <circle cx="12" cy="12" r="10"></circle>
             </svg>
             Envoi en cours...
         `;
+
+        // Timeout pour afficher un message si ça prend trop de temps
+        const slowLoadTimeout = setTimeout(() => {
+            submitQuoteBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning">
+                    <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                Démarrage du serveur (première requête)...
+            `;
+        }, 3000);
 
         // Appel au backend
         const response = await fetch(`${BACKEND_API_URL}/api/save-quote`, {
             method: 'POST',
             body: formData
         });
+
+        clearTimeout(slowLoadTimeout);
 
         const result = await response.json();
 
@@ -510,3 +522,25 @@ function resetForm() {
 if (priceDisplay) {
     priceDisplay.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1)';
 }
+
+// ==================== KEEPALIVE PING ====================
+// Garde le serveur Render actif en envoyant un ping toutes les 10 minutes
+// (Render met les services gratuits en veille après 15 min d'inactivité)
+
+function keepServerAwake() {
+    fetch(`${BACKEND_API_URL}/health`)
+        .then(response => {
+            if (response.ok) {
+                console.log('✅ Keepalive ping successful');
+            }
+        })
+        .catch(error => {
+            console.warn('⚠️ Keepalive ping failed:', error);
+        });
+}
+
+// Premier ping après 30 secondes
+setTimeout(keepServerAwake, 30000);
+
+// Puis ping toutes les 10 minutes
+setInterval(keepServerAwake, 10 * 60 * 1000);
