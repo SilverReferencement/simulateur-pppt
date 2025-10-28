@@ -1,16 +1,10 @@
 // Service d'envoi d'emails
-// Utilise Nodemailer + Gmail pour envoyer les emails automatiques
+// Utilise SendGrid pour envoyer les emails automatiques
 
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-// Configuration du transporteur Gmail
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-    }
-});
+// Configuration SendGrid
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
  * Envoyer email de notification interne
@@ -21,9 +15,12 @@ const transporter = nodemailer.createTransport({
 async function sendInternalEmail(quoteData, sheetUrl, pdfUrl = null) {
     const { quoteId, email, postalCode, department, lots, buildings, includeDPE, price, date, fileUrl } = quoteData;
 
-    const mailOptions = {
-        from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_USER}>`,
+    const msg = {
         to: process.env.EMAIL_INTERNAL,
+        from: {
+            email: process.env.EMAIL_FROM,
+            name: process.env.COMPANY_NAME
+        },
         subject: `🆕 Nouveau devis PPPT #${quoteId}`,
         html: `
             <!DOCTYPE html>
@@ -104,11 +101,14 @@ async function sendInternalEmail(quoteData, sheetUrl, pdfUrl = null) {
     };
 
     try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`✅ Email interne envoyé: ${info.messageId}`);
-        return { success: true, messageId: info.messageId };
+        await sgMail.send(msg);
+        console.log(`✅ Email interne envoyé à ${process.env.EMAIL_INTERNAL}`);
+        return { success: true };
     } catch (error) {
         console.error('❌ Erreur envoi email interne:', error);
+        if (error.response) {
+            console.error('Détails:', error.response.body);
+        }
         throw error;
     }
 }
@@ -121,9 +121,12 @@ async function sendInternalEmail(quoteData, sheetUrl, pdfUrl = null) {
 async function sendClientEmail(quoteData, pdfBuffer = null) {
     const { quoteId, email, lots, buildings, includeDPE, price } = quoteData;
 
-    const mailOptions = {
-        from: `"${process.env.COMPANY_NAME}" <${process.env.EMAIL_USER}>`,
+    const msg = {
         to: email,
+        from: {
+            email: process.env.EMAIL_FROM,
+            name: process.env.COMPANY_NAME
+        },
         subject: `Votre devis PPPT - Référence ${quoteId}`,
         html: `
             <!DOCTYPE html>
@@ -184,25 +187,33 @@ async function sendClientEmail(quoteData, pdfBuffer = null) {
 
                     <div class="footer">
                         <p>${process.env.COMPANY_NAME}<br>
-                        Email: ${process.env.EMAIL_USER}</p>
+                        Email: ${process.env.EMAIL_FROM}</p>
                     </div>
                 </div>
             </body>
             </html>
-        `,
-        attachments: pdfBuffer ? [{
-            filename: `Devis_${quoteId}_Atlas_PPPT.pdf`,
-            content: pdfBuffer,
-            contentType: 'application/pdf'
-        }] : []
+        `
     };
 
+    // Ajouter le PDF en pièce jointe si fourni
+    if (pdfBuffer) {
+        msg.attachments = [{
+            content: pdfBuffer.toString('base64'),
+            filename: `Devis_${quoteId}_Atlas_PPPT.pdf`,
+            type: 'application/pdf',
+            disposition: 'attachment'
+        }];
+    }
+
     try {
-        const info = await transporter.sendMail(mailOptions);
-        console.log(`✅ Email client envoyé à ${email}: ${info.messageId}`);
-        return { success: true, messageId: info.messageId };
+        await sgMail.send(msg);
+        console.log(`✅ Email client envoyé à ${email}`);
+        return { success: true };
     } catch (error) {
         console.error('❌ Erreur envoi email client:', error);
+        if (error.response) {
+            console.error('Détails:', error.response.body);
+        }
         throw error;
     }
 }
@@ -212,8 +223,13 @@ async function sendClientEmail(quoteData, pdfBuffer = null) {
  */
 async function testEmailConnection() {
     try {
-        await transporter.verify();
-        console.log('✅ Configuration email OK');
+        if (!process.env.SENDGRID_API_KEY) {
+            console.error('❌ SENDGRID_API_KEY non configuré');
+            return false;
+        }
+
+        // SendGrid n'a pas de méthode verify(), on teste juste si la clé existe
+        console.log('✅ Configuration SendGrid présente');
         return true;
     } catch (error) {
         console.error('❌ Erreur configuration email:', error);
