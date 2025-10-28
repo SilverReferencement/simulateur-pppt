@@ -268,10 +268,10 @@ async function sendClientEmail(quoteData, pdfBuffer) {
 
                 <!-- Header avec gradient -->
                 <div style="background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); padding: 40px 30px; text-align: center;">
-                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">
+                    <h1 style="margin: 0; color: #ffffff; font-size: 40px; font-weight: 700; letter-spacing: -0.5px;">
                         Atlas PPPT
                     </h1>
-                    <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 15px;">
+                    <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.95); font-size: 19px; font-weight: 500;">
                         Votre Plan Pluriannuel de Travaux
                     </p>
                 </div>
@@ -296,7 +296,7 @@ async function sendClientEmail(quoteData, pdfBuffer) {
                     </div>
 
                     <!-- Card récapitulatif -->
-                    <div style="background: #f9fafb; border-radius: 12px; padding: 25px; margin-bottom: 30px; border: 1px solid #e5e7eb;">
+                    <div style="background: #f9fafb; border-radius: 6px; padding: 25px; margin-bottom: 30px; border: 1px solid #e5e7eb;">
                         <h2 style="margin: 0 0 20px 0; color: #3DA280; font-size: 18px; font-weight: 600;">
                             Votre projet en bref
                         </h2>
@@ -404,8 +404,8 @@ async function sendClientEmail(quoteData, pdfBuffer) {
                     <!-- CTA Button -->
                     <div style="text-align: center; margin: 35px 0;">
                         <a href="mailto:${process.env.EMAIL_FROM}?subject=Validation devis ${quoteData.quoteId}"
-                           style="display: inline-block; background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(61, 162, 128, 0.3);">
-                            ✓ Valider ce devis
+                           style="display: inline-block; background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(61, 162, 128, 0.3);">
+                            Valider le devis
                         </a>
                     </div>
 
