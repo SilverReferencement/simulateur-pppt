@@ -2,6 +2,10 @@ node_modules/
 .env
 *.log
 
+# Sensitive credentials
+VERCEL-ENV-SECRETS.txt
+*-SECRETS.txt
+
 # Apps Script (deprecated - using Vercel instead)
 google-apps-script/.clasp.json
 google-apps-script/deploy.html
