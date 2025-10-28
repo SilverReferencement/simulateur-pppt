@@ -99,105 +99,64 @@ async function saveToSheet(quoteData) {
 }
 
 /**
- * Générer PDF depuis Google Docs template
+ * Générer PDF via Apps Script Webhook
  */
 async function generatePdfFromTemplate(quoteData) {
     try {
-        console.log('🔧 Generating PDF with template ID:', DOCS_TEMPLATE_ID);
+        const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL;
 
-        // Copier le template
-        const copy = await drive.files.copy({
-            fileId: DOCS_TEMPLATE_ID,
-            requestBody: {
-                name: `Devis_${quoteData.quoteId}_temp`,
-                parents: [DRIVE_FOLDER_ID]
-            }
+        if (!webhookUrl) {
+            console.error('❌ APPS_SCRIPT_WEBHOOK_URL not configured');
+            return null;
+        }
+
+        console.log('📤 Calling Apps Script webhook for PDF generation...');
+
+        // Préparer les données pour le webhook
+        const payload = {
+            quoteId: quoteData.quoteId,
+            date: new Date(quoteData.date).toLocaleDateString('fr-FR'),
+            clientName: quoteData.clientName || '',
+            clientEmail: quoteData.email,
+            clientPhone: quoteData.clientPhone || '',
+            address: `${quoteData.postalCode} - ${quoteData.department}`,
+            totalPrice: quoteData.price + ' €',
+            budgetEC: quoteData.budgetEC || '',
+            budgetCE: quoteData.budgetCE || '',
+            lots: `Lots: ${quoteData.lots}\nImmeubles: ${quoteData.buildings}\nDPE: ${quoteData.includeDPE ? 'Oui' : 'Non'}`
+        };
+
+        // Appeler le webhook
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
         });
 
-        console.log('✅ Template copied, doc ID:', copy.data.id);
+        if (!response.ok) {
+            throw new Error(`Webhook returned ${response.status}: ${response.statusText}`);
+        }
 
-        const docId = copy.data.id;
+        const result = await response.json();
 
-        // Remplacer les variables
-        await docs.documents.batchUpdate({
-            documentId: docId,
-            requestBody: {
-                requests: [
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{quoteId}}', matchCase: true },
-                            replaceText: quoteData.quoteId
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{clientEmail}}', matchCase: true },
-                            replaceText: quoteData.email
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{postalCode}}', matchCase: true },
-                            replaceText: quoteData.postalCode
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{lots}}', matchCase: true },
-                            replaceText: quoteData.lots.toString()
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{buildings}}', matchCase: true },
-                            replaceText: quoteData.buildings.toString()
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{includeDPE}}', matchCase: true },
-                            replaceText: quoteData.includeDPE ? 'Oui' : 'Non'
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{price}}', matchCase: true },
-                            replaceText: quoteData.price + ' €'
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{date}}', matchCase: true },
-                            replaceText: new Date(quoteData.date).toLocaleDateString('fr-FR')
-                        }
-                    },
-                    {
-                        replaceAllText: {
-                            containsText: { text: '{{companyName}}', matchCase: true },
-                            replaceText: process.env.COMPANY_NAME
-                        }
-                    }
-                ]
-            }
-        });
+        if (!result.success) {
+            throw new Error(result.error || 'Unknown error from webhook');
+        }
 
-        // Exporter en PDF
-        const pdfResponse = await drive.files.export({
-            fileId: docId,
-            mimeType: 'application/pdf'
-        }, { responseType: 'arraybuffer' });
+        console.log('✅ PDF received from Apps Script');
 
-        // Supprimer le document temporaire
-        await drive.files.delete({ fileId: docId });
+        // Décoder le PDF depuis base64
+        const pdfBuffer = Buffer.from(result.pdf, 'base64');
 
-        console.log('✅ PDF generated successfully');
-        return Buffer.from(pdfResponse.data);
+        console.log('✅ PDF decoded, size:', pdfBuffer.length, 'bytes');
+
+        return pdfBuffer;
+
     } catch (error) {
         console.error('❌ PDF generation error:', error.message);
         console.error('Stack:', error.stack);
-        if (error.response) {
-            console.error('Response:', error.response.data);
-        }
         return null;
     }
 }
