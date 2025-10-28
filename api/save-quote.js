@@ -6,8 +6,14 @@ const { google } = require('googleapis');
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Configuration Google
+const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
+// Fix escaped newlines in private key
+if (credentials.private_key) {
+    credentials.private_key = credentials.private_key.replace(/\\n/g, '\n');
+}
+
 const auth = new google.auth.GoogleAuth({
-    credentials: JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY),
+    credentials: credentials,
     scopes: [
         'https://www.googleapis.com/auth/spreadsheets',
         'https://www.googleapis.com/auth/drive.file',
