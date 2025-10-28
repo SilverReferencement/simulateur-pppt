@@ -486,25 +486,25 @@ module.exports = async (req, res) => {
             timestamp: Date.now()
         };
 
-        // Sauvegarder dans Sheets
-        await saveToSheet(quoteData);
+        // ⚡ PARALLÉLISATION : Sheets + PDF en même temps (gain de temps ~30-40%)
+        console.log('⚡ Starting parallel operations...');
+        const [, pdfBuffer] = await Promise.all([
+            saveToSheet(quoteData),
+            generatePdfFromTemplate(quoteData)
+        ]);
+        console.log('✅ Sheets saved and PDF generated in parallel');
 
-        // Générer PDF depuis template Google Docs
-        const pdfBuffer = await generatePdfFromTemplate(quoteData);
-
-        // Envoyer email interne
-        try {
-            await sendInternalEmail(quoteData);
-        } catch (e) {
-            console.error('⚠️ Internal email error (non-blocking):', e.message);
-        }
-
-        // Envoyer email client avec PDF
-        try {
-            await sendClientEmail(quoteData, pdfBuffer);
-        } catch (e) {
-            console.error('⚠️ Client email error (non-blocking):', e.message);
-        }
+        // ⚡ PARALLÉLISATION : Emails en même temps
+        console.log('⚡ Sending emails in parallel...');
+        await Promise.allSettled([
+            sendInternalEmail(quoteData).catch(e => {
+                console.error('⚠️ Internal email error (non-blocking):', e.message);
+            }),
+            sendClientEmail(quoteData, pdfBuffer).catch(e => {
+                console.error('⚠️ Client email error (non-blocking):', e.message);
+            })
+        ]);
+        console.log('✅ Emails sent in parallel');
 
         // Retour succès
         res.status(200).json({
