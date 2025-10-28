@@ -486,33 +486,51 @@ module.exports = async (req, res) => {
             timestamp: Date.now()
         };
 
-        // ⚡ PARALLÉLISATION : Sheets + PDF en même temps (gain de temps ~30-40%)
-        console.log('⚡ Starting parallel operations...');
-        const [, pdfBuffer] = await Promise.all([
-            saveToSheet(quoteData),
-            generatePdfFromTemplate(quoteData)
-        ]);
-        console.log('✅ Sheets saved and PDF generated in parallel');
+        // ⚡ RÉPONSE RAPIDE : Lancer les opérations en background
+        console.log('⚡ Starting background operations...');
 
-        // ⚡ PARALLÉLISATION : Emails en même temps
-        console.log('⚡ Sending emails in parallel...');
-        await Promise.allSettled([
-            sendInternalEmail(quoteData).catch(e => {
-                console.error('⚠️ Internal email error (non-blocking):', e.message);
-            }),
-            sendClientEmail(quoteData, pdfBuffer).catch(e => {
-                console.error('⚠️ Client email error (non-blocking):', e.message);
-            })
-        ]);
-        console.log('✅ Emails sent in parallel');
+        // Lancer toutes les opérations en parallèle (non-bloquant)
+        const backgroundOperations = (async () => {
+            try {
+                // Parallélisation : Sheets + PDF
+                console.log('📊 Saving to Sheets and generating PDF...');
+                const [, pdfBuffer] = await Promise.all([
+                    saveToSheet(quoteData),
+                    generatePdfFromTemplate(quoteData)
+                ]);
+                console.log('✅ Sheets saved and PDF generated');
 
-        // Retour succès
+                // Parallélisation : Emails
+                console.log('📧 Sending emails...');
+                await Promise.allSettled([
+                    sendInternalEmail(quoteData).catch(e => {
+                        console.error('⚠️ Internal email error:', e.message);
+                    }),
+                    sendClientEmail(quoteData, pdfBuffer).catch(e => {
+                        console.error('⚠️ Client email error:', e.message);
+                    })
+                ]);
+                console.log('✅ All operations completed');
+
+                return { success: true, pdfBuffer };
+            } catch (error) {
+                console.error('❌ Background operation error:', error);
+                return { success: false, error };
+            }
+        })();
+
+        // ⏱️ Attendre 2 secondes avant de répondre
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Retour succès immédiat (après 2 secondes)
         res.status(200).json({
             success: true,
             quoteId,
-            message: 'Devis enregistré avec succès',
-            pdfGenerated: pdfBuffer !== null
+            message: 'Devis enregistré ! Vous recevrez un email dans quelques instants.'
         });
+
+        // ⚙️ Continuer à traiter en background (garde la fonction alive)
+        await backgroundOperations;
 
     } catch (error) {
         console.error('❌ Error:', error);
