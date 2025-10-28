@@ -1,10 +1,10 @@
 // Simulateur PPPT - Calculateur de Prix
-// Version 5.0 - Backend Render connecté
+// Version 6.0 - Backend Google Apps Script (instantané + gratuit)
 // Configuration
 const GOOGLE_SHEET_ID = '1nLBmI7uV6v48fq5zqxsYLqSN1EBCsxAfowQI7rxROyQ';
 const SHEET_NAME = 'Feuille 1';
 const QUOTES_SHEET_ID = '1GiPN9N2rb4vRqdGamQLPNoC0i7wRQaXAon5D9slf4og';
-const BACKEND_API_URL = 'https://pppt-backend.onrender.com';
+const BACKEND_API_URL = 'https://script.google.com/macros/s/AKfycbxJZLg6oL6byuG2SsD-XoHhcPrtUBO9ffZRESp7vL32UmjkUAWzaw2RLl4I6T3GQJSGag/exec';
 
 // Codes postaux Île-de-France (sans astérisque)
 const IDF_POSTAL_CODES = ['75', '92', '93', '94', '77', '78', '95'];
@@ -437,23 +437,12 @@ async function handleQuoteSubmission() {
             Envoi en cours...
         `;
 
-        // Timeout pour afficher un message si ça prend trop de temps
-        const slowLoadTimeout = setTimeout(() => {
-            submitQuoteBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinning">
-                    <circle cx="12" cy="12" r="10"></circle>
-                </svg>
-                Démarrage du serveur (première requête)...
-            `;
-        }, 3000);
-
-        // Appel au backend
-        const response = await fetch(`${BACKEND_API_URL}/api/save-quote`, {
+        // Appel au backend Google Apps Script (instantané, pas de cold start)
+        const response = await fetch(BACKEND_API_URL, {
             method: 'POST',
-            body: formData
+            body: formData,
+            redirect: 'follow'
         });
-
-        clearTimeout(slowLoadTimeout);
 
         const result = await response.json();
 
@@ -524,24 +513,5 @@ if (priceDisplay) {
     priceDisplay.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1)';
 }
 
-// ==================== KEEPALIVE PING ====================
-// Garde le serveur Render actif en envoyant un ping toutes les 10 minutes
-// (Render met les services gratuits en veille après 15 min d'inactivité)
-
-function keepServerAwake() {
-    fetch(`${BACKEND_API_URL}/health`)
-        .then(response => {
-            if (response.ok) {
-                console.log('✅ Keepalive ping successful');
-            }
-        })
-        .catch(error => {
-            console.warn('⚠️ Keepalive ping failed:', error);
-        });
-}
-
-// Premier ping après 30 secondes
-setTimeout(keepServerAwake, 30000);
-
-// Puis ping toutes les 10 minutes
-setInterval(keepServerAwake, 10 * 60 * 1000);
+// ==================== PLUS BESOIN DE KEEPALIVE ====================
+// Google Apps Script est toujours actif, pas de cold start ! ⚡
