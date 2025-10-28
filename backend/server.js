@@ -62,6 +62,23 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Initialiser le Sheet avec headers et ligne gelée
+app.get('/api/init-sheet', async (req, res) => {
+    try {
+        await sheetsService.initializeSheet();
+        res.json({
+            success: true,
+            message: 'Sheet initialisé avec succès (header + frozen row)'
+        });
+    } catch (error) {
+        console.error('Erreur initialisation Sheet:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erreur lors de l\'initialisation du Sheet'
+        });
+    }
+});
+
 // GET: Récupérer les devis (optionnel - pour admin)
 app.get('/api/quotes', async (req, res) => {
     try {
