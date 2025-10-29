@@ -15,7 +15,13 @@
             </div>
 
             <div class="content">
-                <!-- Code postal (en premier) -->
+                <!-- Adresse de la copropriété -->
+                <div class="input-group">
+                    <label for="property-address" class="label-text">Adresse de la copropriété (facultatif)</label>
+                    <input type="text" id="property-address" class="form-input-main" placeholder="Rue, Ville...">
+                </div>
+
+                <!-- Code postal -->
                 <div class="input-group">
                     <label for="postal-code-main" class="label-text">Code postal de l'immeuble</label>
                     <input type="text" id="postal-code-main" class="form-input-main" pattern="[0-9]{5}" maxlength="5">
@@ -57,15 +63,21 @@
                     </div>
                 </div>
 
-                <!-- Option DPE -->
+                <!-- Option DPE Collectif -->
                 <div class="input-group">
-                    <label class="toggle-label">
-                        <span class="label-text">Prestation DPE incluse dans le devis</span>
-                        <div class="toggle-switch">
-                            <input type="checkbox" id="dpe-toggle" class="toggle-input">
-                            <span class="toggle-slider"></span>
-                        </div>
+                    <label>
+                        <span class="label-text">DPE Collectif</span>
                     </label>
+                    <div class="building-selector">
+                        <button class="building-btn active" data-dpe="false">Sans DPE Collectif</button>
+                        <button class="building-btn" data-dpe="true">Avec DPE Collectif</button>
+                    </div>
+                </div>
+
+                <!-- Date du dernier DPE -->
+                <div class="input-group" id="dpe-date-group" style="display: none;">
+                    <label for="dpe-date" class="label-text">Date du dernier DPE</label>
+                    <input type="date" id="dpe-date" class="form-input-main">
                 </div>
 
                 <!-- Résultat du prix -->
@@ -97,13 +109,81 @@
 
                 <!-- Formulaire email (caché par défaut) -->
                 <div class="email-form" id="email-form" style="display: none;">
+                    <!-- Vos informations -->
+                    <h3 class="form-section-title">Vos informations</h3>
+
                     <div class="form-group">
-                        <label for="email-input" class="form-label">Votre email</label>
+                        <label for="user-name" class="form-label">Votre Prénom Nom *</label>
+                        <input type="text" id="user-name" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email-input" class="form-label">Votre Email *</label>
                         <input type="email" id="email-input" class="form-input" required>
                     </div>
+
+                    <div class="form-group">
+                        <label for="user-phone" class="form-label">Votre Téléphone *</label>
+                        <input type="tel" id="user-phone" class="form-input" required>
+                    </div>
+
+                    <!-- Président du conseil syndical -->
+                    <h3 class="form-section-title">Président du conseil syndical</h3>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="is-president" class="checkbox-input">
+                            <span>Je suis le président du conseil syndical</span>
+                        </label>
+                    </div>
+
+                    <div id="president-fields">
+                        <div class="form-group">
+                            <label for="president-name" class="form-label">Prénom Nom du président</label>
+                            <input type="text" id="president-name" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="president-email" class="form-label">Email du président</label>
+                            <input type="email" id="president-email" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="president-phone" class="form-label">Téléphone du président</label>
+                            <input type="tel" id="president-phone" class="form-input">
+                        </div>
+                        <p class="form-help-text">* Au moins un champ doit être rempli</p>
+                    </div>
+
+                    <!-- Membres du conseil syndical -->
+                    <h3 class="form-section-title">Membres du conseil syndical</h3>
+
+                    <div id="council-members-container"></div>
+
+                    <button type="button" class="btn-add-member" id="add-member-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Ajouter un membre du conseil syndical
+                    </button>
+
+                    <!-- Informations complémentaires -->
+                    <h3 class="form-section-title">Informations complémentaires</h3>
+
+                    <div class="form-group">
+                        <label for="ag-date" class="form-label">Prochaine date d'AG (facultatif)</label>
+                        <input type="date" id="ag-date" class="form-input">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="comment" class="form-label">Commentaire à destination de Atlas PPPT (facultatif)</label>
+                        <textarea id="comment" class="form-input" rows="3"></textarea>
+                    </div>
+
                     <div class="form-group">
                         <div class="form-label-wrapper">
-                            <label for="dpe-file-input" class="form-label">Dernier DPE collectif</label>
+                            <label for="dpe-file-input" class="form-label">Dernier DPE collectif (facultatif)</label>
                             <span class="info-tooltip" data-tooltip="Document disponible sur le site de votre syndic ou sur demande">ℹ️</span>
                         </div>
                         <div class="file-upload-wrapper">
@@ -118,11 +198,20 @@
                             </label>
                         </div>
                     </div>
+
                     <button class="btn-submit" id="submit-quote-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
                         Recevoir le devis par email
+                    </button>
+
+                    <button class="btn-payment" id="payment-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        Valider ce devis et payer la prestation
                     </button>
                 </div>
             </div>

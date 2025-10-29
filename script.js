@@ -20,7 +20,6 @@ let selectedFile = null;
 const lotsSlider = document.getElementById('lots-slider');
 const lotsInput = document.getElementById('lots-input');
 const sliderProgress = document.getElementById('slider-progress');
-const dpeToggle = document.getElementById('dpe-toggle');
 const priceDisplay = document.getElementById('price-display');
 const priceInfo = document.getElementById('price-info');
 const priceAsterisk = document.getElementById('price-asterisk');
@@ -33,6 +32,26 @@ const emailInput = document.getElementById('email-input');
 const postalCodeMain = document.getElementById('postal-code-main');
 const dpeFileInput = document.getElementById('dpe-file-input');
 const fileName = document.getElementById('file-name');
+
+// Nouveaux éléments DOM
+const propertyAddress = document.getElementById('property-address');
+const dpeDateGroup = document.getElementById('dpe-date-group');
+const dpeDate = document.getElementById('dpe-date');
+const userName = document.getElementById('user-name');
+const userPhone = document.getElementById('user-phone');
+const isPresident = document.getElementById('is-president');
+const presidentFields = document.getElementById('president-fields');
+const presidentName = document.getElementById('president-name');
+const presidentEmail = document.getElementById('president-email');
+const presidentPhone = document.getElementById('president-phone');
+const councilMembersContainer = document.getElementById('council-members-container');
+const addMemberBtn = document.getElementById('add-member-btn');
+const agDate = document.getElementById('ag-date');
+const comment = document.getElementById('comment');
+const paymentBtn = document.getElementById('payment-btn');
+
+// Compteur de membres du conseil
+let councilMemberCount = 0;
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -95,22 +114,65 @@ function setupEventListeners() {
         calculateAndDisplayPrice();
     });
 
-    // Toggle DPE
-    dpeToggle.addEventListener('change', (e) => {
-        includeDPE = e.target.checked;
-        calculateAndDisplayPrice();
-        checkAsteriskDisplay();
-    });
-
-    // Sélecteur de bâtiments
+    // Sélecteurs de bâtiments et DPE (même logique)
     buildingBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            buildingBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentBuildings = parseInt(btn.dataset.buildings);
-            calculateAndDisplayPrice();
+            // Gérer les boutons de bâtiments
+            if (btn.dataset.buildings) {
+                const group = btn.parentElement;
+                group.querySelectorAll('.building-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentBuildings = parseInt(btn.dataset.buildings);
+                calculateAndDisplayPrice();
+            }
+            // Gérer les boutons DPE
+            else if (btn.dataset.dpe !== undefined) {
+                const group = btn.parentElement;
+                group.querySelectorAll('.building-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                includeDPE = btn.dataset.dpe === 'true';
+
+                // Afficher/masquer le champ date DPE
+                if (includeDPE) {
+                    dpeDateGroup.style.display = 'block';
+                } else {
+                    dpeDateGroup.style.display = 'none';
+                    dpeDate.value = '';
+                }
+
+                calculateAndDisplayPrice();
+                checkAsteriskDisplay();
+            }
         });
     });
+
+    // Checkbox "Je suis le président"
+    if (isPresident) {
+        isPresident.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                presidentFields.style.display = 'none';
+                // Vider les champs président
+                presidentName.value = '';
+                presidentEmail.value = '';
+                presidentPhone.value = '';
+            } else {
+                presidentFields.style.display = 'block';
+            }
+        });
+    }
+
+    // Bouton ajouter un membre
+    if (addMemberBtn) {
+        addMemberBtn.addEventListener('click', addCouncilMember);
+    }
+
+    // Bouton paiement
+    if (paymentBtn) {
+        paymentBtn.addEventListener('click', () => {
+            // Rediriger vers page de paiement (placeholder pour l'instant)
+            window.location.href = 'payment.html';
+        });
+    }
 
     // Upload de fichier
     dpeFileInput.addEventListener('change', (e) => {
@@ -355,20 +417,73 @@ function updateSliderProgress() {
 }
 
 /**
+ * Ajouter un membre du conseil syndical
+ */
+function addCouncilMember() {
+    councilMemberCount++;
+    const memberId = `member-${councilMemberCount}`;
+
+    const memberHTML = `
+        <div class="council-member-item" id="${memberId}">
+            <div class="council-member-header">
+                <span class="council-member-title">Membre ${councilMemberCount}</span>
+                <button type="button" class="btn-remove-member" onclick="removeCouncilMember('${memberId}')">Supprimer</button>
+            </div>
+            <div class="form-group">
+                <label for="${memberId}-name" class="form-label">Prénom Nom</label>
+                <input type="text" id="${memberId}-name" class="form-input council-member-name">
+            </div>
+            <div class="form-group">
+                <label for="${memberId}-email" class="form-label">Email</label>
+                <input type="email" id="${memberId}-email" class="form-input council-member-email">
+            </div>
+            <div class="form-group">
+                <label for="${memberId}-phone" class="form-label">Téléphone</label>
+                <input type="tel" id="${memberId}-phone" class="form-input council-member-phone">
+            </div>
+        </div>
+    `;
+
+    councilMembersContainer.insertAdjacentHTML('beforeend', memberHTML);
+}
+
+/**
+ * Supprimer un membre du conseil syndical
+ */
+function removeCouncilMember(memberId) {
+    const memberElement = document.getElementById(memberId);
+    if (memberElement) {
+        memberElement.remove();
+    }
+}
+
+/**
  * Gestion de la soumission du devis
  */
 async function handleQuoteSubmission() {
     const email = emailInput.value.trim();
     const postalCode = postalCodeMain ? postalCodeMain.value.trim() : '';
+    const userNameVal = userName.value.trim();
+    const userPhoneVal = userPhone.value.trim();
 
-    // Validation basique
+    // Validations champs obligatoires
+    if (!userNameVal) {
+        alert('Veuillez remplir votre Prénom Nom');
+        return;
+    }
+
     if (!email) {
-        alert('Veuillez remplir votre adresse email');
+        alert('Veuillez remplir votre email');
+        return;
+    }
+
+    if (!userPhoneVal) {
+        alert('Veuillez remplir votre téléphone');
         return;
     }
 
     if (!postalCode || postalCode.length !== 5) {
-        alert('Veuillez entrer un code postal valide (5 chiffres) en haut du formulaire');
+        alert('Veuillez entrer un code postal valide (5 chiffres)');
         return;
     }
 
@@ -385,24 +500,78 @@ async function handleQuoteSubmission() {
         return;
     }
 
+    // Validation président (si non coché, au moins 1 champ doit être rempli)
+    const isPres = isPresident.checked;
+    const presName = presidentName.value.trim();
+    const presEmail = presidentEmail.value.trim();
+    const presPhone = presidentPhone.value.trim();
+
+    if (!isPres && !presName && !presEmail && !presPhone) {
+        alert('Veuillez remplir au moins un champ du président du conseil syndical (Nom, Email ou Téléphone), ou cochez "Je suis le président"');
+        return;
+    }
+
+    // Collecter les membres du conseil syndical
+    const councilMembers = [];
+    const memberItems = document.querySelectorAll('.council-member-item');
+    memberItems.forEach(item => {
+        const memberName = item.querySelector('.council-member-name').value.trim();
+        const memberEmail = item.querySelector('.council-member-email').value.trim();
+        const memberPhone = item.querySelector('.council-member-phone').value.trim();
+
+        if (memberName || memberEmail || memberPhone) {
+            councilMembers.push({
+                name: memberName,
+                email: memberEmail,
+                phone: memberPhone
+            });
+        }
+    });
+
     const price = calculatePrice(currentLots, includeDPE, currentBuildings);
     const departement = postalCode.substring(0, 2);
     const isIDF = IDF_POSTAL_CODES.includes(departement);
 
     // Créer le contenu du devis
     const quoteData = {
+        // Infos utilisateur
+        userName: userNameVal,
         email: email,
+        userPhone: userPhoneVal,
+
+        // Infos copropriété
+        propertyAddress: propertyAddress.value.trim(),
         postalCode: postalCode,
+        department: departement,
+        isIDF: isIDF,
+
+        // Détails devis
         lots: currentLots,
         buildings: currentBuildings,
         includeDPE: includeDPE,
+        dpeDate: includeDPE ? dpeDate.value : '',
         price: price,
-        department: departement,
-        isIDF: isIDF,
+
+        // Président
+        isPresident: isPres,
+        presidentName: isPres ? userNameVal : presName,
+        presidentEmail: isPres ? email : presEmail,
+        presidentPhone: isPres ? userPhoneVal : presPhone,
+
+        // Membres conseil
+        councilMembers: councilMembers,
+
+        // Infos complémentaires
+        agDate: agDate.value,
+        comment: comment.value.trim(),
+
+        // Fichier
         hasFile: selectedFile !== null,
         fileName: selectedFile ? selectedFile.name : '',
         fileSize: selectedFile ? selectedFile.size : 0,
         fileType: selectedFile ? selectedFile.type : '',
+
+        // Métadonnées
         date: new Date().toISOString(),
         timestamp: Date.now()
     };
@@ -421,16 +590,38 @@ async function handleQuoteSubmission() {
             Génération du devis et envoi en cours...
         `;
 
-        // Préparer les données JSON (upload fichier désactivé temporairement)
+        // Préparer les données JSON
         const payload = {
+            // Infos utilisateur
+            userName: quoteData.userName,
             email: quoteData.email,
+            userPhone: quoteData.userPhone,
+
+            // Infos copropriété
+            propertyAddress: quoteData.propertyAddress,
             postalCode: quoteData.postalCode,
+            department: quoteData.department,
+            isIDF: quoteData.isIDF.toString(),
+
+            // Détails devis
             lots: quoteData.lots.toString(),
             buildings: quoteData.buildings.toString(),
             includeDPE: quoteData.includeDPE.toString(),
+            dpeDate: quoteData.dpeDate,
             price: quoteData.price.toString(),
-            department: quoteData.department,
-            isIDF: quoteData.isIDF.toString()
+
+            // Président
+            isPresident: quoteData.isPresident.toString(),
+            presidentName: quoteData.presidentName,
+            presidentEmail: quoteData.presidentEmail,
+            presidentPhone: quoteData.presidentPhone,
+
+            // Membres conseil (JSON stringifié)
+            councilMembers: JSON.stringify(quoteData.councilMembers),
+
+            // Infos complémentaires
+            agDate: quoteData.agDate,
+            comment: quoteData.comment
         };
 
         console.log('Sending to Vercel:', payload);
