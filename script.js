@@ -72,11 +72,213 @@ async function initializeApp() {
         await loadPricingData();
         updateSliderProgress();
         calculateAndDisplayPrice();
+
+        // Charger le devis depuis l'URL si un quoteId est présent
+        await loadQuoteFromUrl();
     } catch (error) {
         console.error('Erreur lors de l\'initialisation:', error);
         // Utiliser des données par défaut en cas d'erreur
         useFallbackData();
     }
+}
+
+/**
+ * Récupérer un paramètre de l'URL
+ */
+function getUrlParameter(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+/**
+ * Charger un devis depuis l'URL
+ */
+async function loadQuoteFromUrl() {
+    const quoteId = getUrlParameter('quoteId');
+
+    if (!quoteId) {
+        return; // Pas de quoteId, rien à faire
+    }
+
+    console.log('🔍 Loading quote:', quoteId);
+
+    try {
+        const response = await fetch(`${BACKEND_API_URL.replace('/save-quote', '/get-quote')}?id=${encodeURIComponent(quoteId)}`);
+
+        if (!response.ok) {
+            console.error('❌ Failed to load quote:', response.statusText);
+            alert('Impossible de charger le devis. Veuillez vérifier la référence.');
+            return;
+        }
+
+        const data = await response.json();
+
+        if (!data.success || !data.quote) {
+            console.error('❌ Quote not found');
+            alert('Devis non trouvé.');
+            return;
+        }
+
+        console.log('✅ Quote loaded:', data.quote);
+
+        // Pré-remplir le formulaire
+        populateFormWithQuote(data.quote);
+
+        // Afficher le formulaire email automatiquement
+        emailForm.style.display = 'block';
+        emailQuoteBtn.style.display = 'none';
+
+    } catch (error) {
+        console.error('❌ Error loading quote:', error);
+        alert('Erreur lors du chargement du devis.');
+    }
+}
+
+/**
+ * Pré-remplir le formulaire avec les données du devis
+ */
+function populateFormWithQuote(quote) {
+    // Code postal et adresse
+    if (postalCodeMain && quote.postalCode) {
+        postalCodeMain.value = quote.postalCode;
+    }
+
+    if (propertyAddress && quote.propertyAddress) {
+        propertyAddress.value = quote.propertyAddress;
+    }
+
+    // Nombre d'immeubles
+    if (quote.buildings) {
+        currentBuildings = quote.buildings;
+        buildingBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (parseInt(btn.dataset.buildings) === quote.buildings) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    // Nombre de lots
+    if (quote.lots) {
+        currentLots = quote.lots;
+        lotsSlider.value = Math.min(quote.lots, 150);
+        lotsInput.value = quote.lots;
+        updateSliderProgress();
+    }
+
+    // Date DPE
+    if (dpeDate && quote.dpeDate) {
+        // Convertir le format de date si nécessaire
+        try {
+            const dateParts = quote.dpeDate.split('/');
+            if (dateParts.length === 3) {
+                // Format DD/MM/YYYY -> YYYY-MM-DD
+                dpeDate.value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+            } else {
+                dpeDate.value = quote.dpeDate;
+            }
+        } catch (e) {
+            console.error('Error parsing date:', e);
+        }
+    }
+
+    // DPE Collectif
+    includeDPE = quote.includeDPE;
+    const dpeBtns = document.querySelectorAll('[data-dpe]');
+    dpeBtns.forEach(btn => {
+        btn.classList.remove('active');
+        const btnValue = btn.dataset.dpe === 'true';
+        if (btnValue === quote.includeDPE) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Informations utilisateur
+    if (userFirstname && quote.userFirstname) {
+        userFirstname.value = quote.userFirstname;
+    }
+
+    if (userLastname && quote.userLastname) {
+        userLastname.value = quote.userLastname;
+    }
+
+    if (emailInput && quote.email) {
+        emailInput.value = quote.email;
+    }
+
+    if (userPhone && quote.userPhone) {
+        userPhone.value = quote.userPhone;
+    }
+
+    // Président
+    if (quote.isPresident && isPresident) {
+        isPresident.checked = true;
+        presidentFields.style.display = 'none';
+    } else {
+        if (presidentFirstname && quote.presidentFirstname) {
+            presidentFirstname.value = quote.presidentFirstname;
+        }
+
+        if (presidentLastname && quote.presidentLastname) {
+            presidentLastname.value = quote.presidentLastname;
+        }
+
+        if (presidentEmail && quote.presidentEmail) {
+            presidentEmail.value = quote.presidentEmail;
+        }
+
+        if (presidentPhone && quote.presidentPhone) {
+            presidentPhone.value = quote.presidentPhone;
+        }
+    }
+
+    // Membres du conseil syndical
+    if (quote.councilMembers && quote.councilMembers.length > 0) {
+        quote.councilMembers.forEach(member => {
+            addCouncilMember();
+            const lastMember = councilMembersContainer.lastElementChild;
+
+            if (lastMember) {
+                const firstnameInput = lastMember.querySelector('.council-member-firstname');
+                const lastnameInput = lastMember.querySelector('.council-member-lastname');
+                const emailInputMember = lastMember.querySelector('.council-member-email');
+                const phoneInput = lastMember.querySelector('.council-member-phone');
+
+                if (firstnameInput && member.firstname) firstnameInput.value = member.firstname;
+                if (lastnameInput && member.lastname) lastnameInput.value = member.lastname;
+                if (emailInputMember && member.email) emailInputMember.value = member.email;
+                if (phoneInput && member.phone) phoneInput.value = member.phone;
+            }
+        });
+    }
+
+    // Date AG
+    if (quote.agDate) {
+        const agDateInput = document.getElementById('ag-date');
+        if (agDateInput) {
+            try {
+                const dateParts = quote.agDate.split('/');
+                if (dateParts.length === 3) {
+                    agDateInput.value = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+                } else {
+                    agDateInput.value = quote.agDate;
+                }
+            } catch (e) {
+                console.error('Error parsing AG date:', e);
+            }
+        }
+    }
+
+    // Commentaire
+    if (quote.comment) {
+        const commentInput = document.getElementById('comment');
+        if (commentInput) {
+            commentInput.value = quote.comment;
+        }
+    }
+
+    // Recalculer le prix
+    calculateAndDisplayPrice();
 }
 
 /**
