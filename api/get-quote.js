@@ -74,6 +74,8 @@ module.exports = async (req, res) => {
  */
 async function getQuoteFromSheet(quoteId) {
     try {
+        console.log('🔑 Authenticating with Google...');
+
         // Authentification Google
         const auth = new google.auth.GoogleAuth({
             credentials: {
@@ -85,6 +87,8 @@ async function getQuoteFromSheet(quoteId) {
 
         const sheets = google.sheets({ version: 'v4', auth });
 
+        console.log('📊 Fetching data from sheet...');
+
         // Récupérer toutes les données
         const response = await sheets.spreadsheets.values.get({
             spreadsheetId: SPREADSHEET_ID,
@@ -94,8 +98,11 @@ async function getQuoteFromSheet(quoteId) {
         const rows = response.data.values;
 
         if (!rows || rows.length === 0) {
+            console.log('❌ No data found in sheet');
             return null;
         }
+
+        console.log(`📝 Found ${rows.length} rows in sheet`);
 
         // Trouver la ligne avec le quoteId
         const headerRow = rows[0];
@@ -104,36 +111,51 @@ async function getQuoteFromSheet(quoteId) {
         const quoteRow = dataRows.find(row => row[0] === quoteId);
 
         if (!quoteRow) {
+            console.log('❌ Quote not found:', quoteId);
             return null;
         }
 
-        // Parser les membres du conseil syndical
+        console.log('✅ Quote found, parsing data...');
+
+        // Parser les membres du conseil syndical (avec gestion d'erreur)
         let councilMembers = [];
-        const councilMembersText = quoteRow[20] || '';
+        try {
+            const councilMembersText = quoteRow[20] || '';
 
-        if (councilMembersText) {
-            // Format: "Membre 1: Prénom Nom | email | phone\nMembre 2: ..."
-            councilMembers = councilMembersText.split('\n')
-                .filter(line => line.trim())
-                .map(line => {
-                    const parts = line.split('|').map(p => p.trim());
-                    if (parts.length >= 3) {
-                        // Extraire prénom et nom de "Membre X: Prénom Nom"
-                        const namePart = parts[0].split(':')[1]?.trim() || '';
-                        const names = namePart.split(' ');
-                        const firstname = names[0] || '-';
-                        const lastname = names.slice(1).join(' ') || '-';
+            if (councilMembersText) {
+                // Format: "Membre 1: Prénom Nom | email | phone\nMembre 2: ..."
+                councilMembers = councilMembersText.split('\n')
+                    .filter(line => line.trim())
+                    .map(line => {
+                        try {
+                            const parts = line.split('|').map(p => p.trim());
+                            if (parts.length >= 1) {
+                                // Extraire prénom et nom de "Membre X: Prénom Nom"
+                                const namePart = parts[0].includes(':')
+                                    ? parts[0].split(':')[1]?.trim() || ''
+                                    : parts[0].trim();
 
-                        return {
-                            firstname: firstname === '-' ? '' : firstname,
-                            lastname: lastname === '-' ? '' : lastname,
-                            email: parts[1] === '-' ? '' : parts[1],
-                            phone: parts[2] === '-' ? '' : parts[2]
-                        };
-                    }
-                    return null;
-                })
-                .filter(m => m !== null);
+                                const names = namePart.split(' ');
+                                const firstname = names[0] || '';
+                                const lastname = names.slice(1).join(' ') || '';
+
+                                return {
+                                    firstname: firstname === '-' ? '' : firstname,
+                                    lastname: lastname === '-' ? '' : lastname,
+                                    email: parts[1] && parts[1] !== '-' ? parts[1] : '',
+                                    phone: parts[2] && parts[2] !== '-' ? parts[2] : ''
+                                };
+                            }
+                        } catch (e) {
+                            console.warn('⚠️ Error parsing council member line:', line, e);
+                        }
+                        return null;
+                    })
+                    .filter(m => m !== null);
+            }
+        } catch (e) {
+            console.warn('⚠️ Error parsing council members:', e);
+            councilMembers = [];
         }
 
         // Construire l'objet devis
@@ -163,10 +185,13 @@ async function getQuoteFromSheet(quoteId) {
             comment: quoteRow[22] || ''
         };
 
+        console.log('✅ Quote data parsed successfully');
+
         return quoteData;
 
     } catch (error) {
-        console.error('Error fetching from Sheet:', error);
+        console.error('❌ Error fetching from Sheet:', error.message);
+        console.error('Stack:', error.stack);
         throw error;
     }
 }
