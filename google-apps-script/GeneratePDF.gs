@@ -66,7 +66,9 @@ function generatePdfFromTemplate(quoteData) {
   body.replaceText('{{date}}', quoteData.date || '');
 
   // Client
-  body.replaceText('{{userName}}', quoteData.userName || '');
+  body.replaceText('{{userFirstname}}', quoteData.userFirstname || '');
+  body.replaceText('{{userLastname}}', quoteData.userLastname || '');
+  body.replaceText('{{userName}}', (quoteData.userFirstname || '') + ' ' + (quoteData.userLastname || '')); // Backward compatibility
   body.replaceText('{{userEmail}}', quoteData.userEmail || '');
   body.replaceText('{{userPhone}}', quoteData.userPhone || '');
 
@@ -84,7 +86,9 @@ function generatePdfFromTemplate(quoteData) {
 
   // Président
   body.replaceText('{{isPresident}}', quoteData.isPresident || 'Non');
-  body.replaceText('{{presidentName}}', quoteData.presidentName || '');
+  body.replaceText('{{presidentFirstname}}', quoteData.presidentFirstname || '');
+  body.replaceText('{{presidentLastname}}', quoteData.presidentLastname || '');
+  body.replaceText('{{presidentName}}', (quoteData.presidentFirstname || '') + ' ' + (quoteData.presidentLastname || '')); // Backward compatibility
   body.replaceText('{{presidentEmail}}', quoteData.presidentEmail || '');
   body.replaceText('{{presidentPhone}}', quoteData.presidentPhone || '');
 

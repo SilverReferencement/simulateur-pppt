@@ -59,9 +59,61 @@ async function generateUniqueId() {
 }
 
 /**
+ * Mettre à jour les en-têtes du Google Sheet
+ */
+async function updateSheetHeaders() {
+    try {
+        const headers = [
+            'ID Devis',
+            'Date',
+            'Prénom Client',
+            'Nom Client',
+            'Email Client',
+            'Téléphone Client',
+            'Adresse Copropriété',
+            'Code Postal',
+            'Département',
+            'Île-de-France',
+            'Nombre de Lots',
+            'Nombre d\'Immeubles',
+            'DPE Collectif',
+            'Date Dernier DPE Collectif',
+            'Prix',
+            'Demandeur = Président',
+            'Prénom Président',
+            'Nom Président',
+            'Email Président',
+            'Téléphone Président',
+            'Membres Conseil Syndical',
+            'Prochaine Date AG',
+            'Commentaire',
+            'Fichier URL',
+            'Fichier Nom',
+            'Timestamp'
+        ];
+
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${SHEET_NAME}!A1:Z1`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: {
+                values: [headers]
+            }
+        });
+
+        console.log('✅ Headers updated');
+    } catch (error) {
+        console.error('⚠️ Error updating headers:', error.message);
+    }
+}
+
+/**
  * Sauvegarder dans Google Sheets
  */
 async function saveToSheet(quoteData) {
+    // Mettre à jour les en-têtes (ne fait rien si déjà à jour)
+    await updateSheetHeaders();
+
     const existingData = await sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: `${SHEET_NAME}!A:A`
@@ -73,14 +125,15 @@ async function saveToSheet(quoteData) {
     // Formatter les membres du conseil
     const councilMembersText = quoteData.councilMembers && quoteData.councilMembers.length > 0
         ? quoteData.councilMembers.map((m, i) =>
-            `Membre ${i+1}: ${m.name || '-'} | ${m.email || '-'} | ${m.phone || '-'}`
+            `Membre ${i+1}: ${m.firstname || '-'} ${m.lastname || '-'} | ${m.email || '-'} | ${m.phone || '-'}`
           ).join('\n')
         : '';
 
     const row = [
         quoteData.quoteId,
         new Date(quoteData.date).toLocaleString('fr-FR'),
-        quoteData.userName,
+        quoteData.userFirstname,
+        quoteData.userLastname,
         quoteData.email,
         quoteData.userPhone,
         quoteData.propertyAddress,
@@ -93,7 +146,8 @@ async function saveToSheet(quoteData) {
         quoteData.dpeDate,
         quoteData.price,
         quoteData.isPresident ? 'Oui' : 'Non',
-        quoteData.presidentName,
+        quoteData.presidentFirstname,
+        quoteData.presidentLastname,
         quoteData.presidentEmail,
         quoteData.presidentPhone,
         councilMembersText,
@@ -133,7 +187,7 @@ async function generatePdfFromTemplate(quoteData) {
         // Formatter les membres du conseil pour le PDF
         const councilMembersText = quoteData.councilMembers && quoteData.councilMembers.length > 0
             ? quoteData.councilMembers.map((m, i) =>
-                `Membre ${i+1}: ${m.name || '-'} | ${m.email || '-'} | ${m.phone || '-'}`
+                `Membre ${i+1}: ${m.firstname || '-'} ${m.lastname || '-'} | ${m.email || '-'} | ${m.phone || '-'}`
               ).join('\n')
             : '';
 
@@ -143,7 +197,8 @@ async function generatePdfFromTemplate(quoteData) {
             date: new Date(quoteData.date).toLocaleDateString('fr-FR'),
 
             // Client
-            userName: quoteData.userName,
+            userFirstname: quoteData.userFirstname,
+            userLastname: quoteData.userLastname,
             userEmail: quoteData.email,
             userPhone: quoteData.userPhone,
 
@@ -161,7 +216,8 @@ async function generatePdfFromTemplate(quoteData) {
 
             // Président
             isPresident: quoteData.isPresident ? 'Oui' : 'Non',
-            presidentName: quoteData.presidentName,
+            presidentFirstname: quoteData.presidentFirstname,
+            presidentLastname: quoteData.presidentLastname,
             presidentEmail: quoteData.presidentEmail,
             presidentPhone: quoteData.presidentPhone,
 
@@ -562,7 +618,7 @@ module.exports = async (req, res) => {
         const data = req.body;
 
         // Validation basique
-        if (!data.email || !data.postalCode || !data.lots || !data.buildings || !data.price || !data.userName || !data.userPhone) {
+        if (!data.email || !data.postalCode || !data.lots || !data.buildings || !data.price || !data.userFirstname || !data.userLastname || !data.userPhone) {
             return res.status(400).json({
                 success: false,
                 error: 'Missing required fields'
@@ -591,7 +647,8 @@ module.exports = async (req, res) => {
             date: new Date().toISOString(),
 
             // Infos utilisateur
-            userName: data.userName,
+            userFirstname: data.userFirstname,
+            userLastname: data.userLastname,
             email: data.email,
             userPhone: data.userPhone,
 
@@ -610,7 +667,8 @@ module.exports = async (req, res) => {
 
             // Président
             isPresident: data.isPresident === 'true' || data.isPresident === true,
-            presidentName: data.presidentName || '',
+            presidentFirstname: data.presidentFirstname || '',
+            presidentLastname: data.presidentLastname || '',
             presidentEmail: data.presidentEmail || '',
             presidentPhone: data.presidentPhone || '',
 

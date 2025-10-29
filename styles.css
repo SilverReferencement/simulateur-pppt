@@ -812,6 +812,19 @@ body {
     transform: translateY(0);
 }
 
+/* Form grid 2x2 */
+.form-grid-2x2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .form-grid-2x2 {
+        grid-template-columns: 1fr;
+    }
+}
+
 
 /* Responsive */
 @media (max-width: 768px) {

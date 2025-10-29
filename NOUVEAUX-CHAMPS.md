@@ -10,7 +10,9 @@ Dans le document, écris ces champs **exactement comme indiqué** (avec les acco
 - `{{date}}` - Date du devis (format: jj/mm/aaaa)
 
 ### Informations client
-- `{{userName}}` - Prénom Nom du client
+- `{{userFirstname}}` - Prénom du client
+- `{{userLastname}}` - Nom du client
+- `{{userName}}` - Prénom Nom du client (combiné, pour rétrocompatibilité)
 - `{{userEmail}}` - Email du client
 - `{{userPhone}}` - Téléphone du client
 
@@ -28,7 +30,9 @@ Dans le document, écris ces champs **exactement comme indiqué** (avec les acco
 
 ### Président du conseil syndical
 - `{{isPresident}}` - Le demandeur est président (Oui/Non)
-- `{{presidentName}}` - Nom du président
+- `{{presidentFirstname}}` - Prénom du président
+- `{{presidentLastname}}` - Nom du président
+- `{{presidentName}}` - Prénom Nom du président (combiné, pour rétrocompatibilité)
 - `{{presidentEmail}}` - Email du président
 - `{{presidentPhone}}` - Téléphone du président
 
@@ -43,32 +47,34 @@ Dans le document, écris ces champs **exactement comme indiqué** (avec les acco
 
 ## 📊 En-têtes de Colonnes Google Sheet
 
-Voici les 24 colonnes à créer dans ton Google Sheet (dans l'ordre) :
+Voici les 26 colonnes à créer dans ton Google Sheet (dans l'ordre) :
 
 1. **ID Devis**
 2. **Date**
-3. **Nom Client**
-4. **Email Client**
-5. **Téléphone Client**
-6. **Adresse Copropriété**
-7. **Code Postal**
-8. **Département**
-9. **Île-de-France**
-10. **Nombre de Lots**
-11. **Nombre d'Immeubles**
-12. **DPE Collectif**
-13. **Date Dernier DPE**
-14. **Prix**
-15. **Demandeur = Président**
-16. **Nom Président**
-17. **Email Président**
-18. **Téléphone Président**
-19. **Membres Conseil Syndical**
-20. **Prochaine Date AG**
-21. **Commentaire**
-22. **Fichier URL**
-23. **Fichier Nom**
-24. **Timestamp**
+3. **Prénom Client**
+4. **Nom Client**
+5. **Email Client**
+6. **Téléphone Client**
+7. **Adresse Copropriété**
+8. **Code Postal**
+9. **Département**
+10. **Île-de-France**
+11. **Nombre de Lots**
+12. **Nombre d'Immeubles**
+13. **DPE Collectif**
+14. **Date Dernier DPE Collectif**
+15. **Prix**
+16. **Demandeur = Président**
+17. **Prénom Président**
+18. **Nom Président**
+19. **Email Président**
+20. **Téléphone Président**
+21. **Membres Conseil Syndical**
+22. **Prochaine Date AG**
+23. **Commentaire**
+24. **Fichier URL**
+25. **Fichier Nom**
+26. **Timestamp**
 
 ---
 
@@ -105,7 +111,8 @@ Voici un exemple de structure pour ton template :
                         Date : {{date}}
 
 CLIENT
-Nom : {{userName}}
+Prénom : {{userFirstname}}
+Nom : {{userLastname}}
 Email : {{userEmail}}
 Téléphone : {{userPhone}}
 
@@ -117,12 +124,13 @@ DÉTAILS DU DEVIS
 Nombre de lots : {{lots}}
 Nombre d'immeubles : {{buildings}}
 DPE Collectif : {{includeDPE}}
-Date dernier DPE : {{dpeDate}}
+Date dernier DPE Collectif : {{dpeDate}}
 
 PRIX TOTAL : {{price}}
 
 PRÉSIDENT DU CONSEIL SYNDICAL
-Nom : {{presidentName}}
+Prénom : {{presidentFirstname}}
+Nom : {{presidentLastname}}
 Email : {{presidentEmail}}
 Téléphone : {{presidentPhone}}
 

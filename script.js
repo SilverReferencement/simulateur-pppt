@@ -37,11 +37,13 @@ const fileName = document.getElementById('file-name');
 const propertyAddress = document.getElementById('property-address');
 const dpeDate = document.getElementById('dpe-date');
 const dpeWarning = document.getElementById('dpe-warning');
-const userName = document.getElementById('user-name');
+const userFirstname = document.getElementById('user-firstname');
+const userLastname = document.getElementById('user-lastname');
 const userPhone = document.getElementById('user-phone');
 const isPresident = document.getElementById('is-president');
 const presidentFields = document.getElementById('president-fields');
-const presidentName = document.getElementById('president-name');
+const presidentFirstname = document.getElementById('president-firstname');
+const presidentLastname = document.getElementById('president-lastname');
 const presidentEmail = document.getElementById('president-email');
 const presidentPhone = document.getElementById('president-phone');
 const councilMembersContainer = document.getElementById('council-members-container');
@@ -157,7 +159,8 @@ function setupEventListeners() {
             if (e.target.checked) {
                 presidentFields.style.display = 'none';
                 // Vider les champs président
-                presidentName.value = '';
+                presidentFirstname.value = '';
+                presidentLastname.value = '';
                 presidentEmail.value = '';
                 presidentPhone.value = '';
             } else {
@@ -514,17 +517,23 @@ function addCouncilMember() {
                 <span class="council-member-title">Membre ${councilMemberCount}</span>
                 <button type="button" class="btn-remove-member" onclick="removeCouncilMember('${memberId}')">Supprimer</button>
             </div>
-            <div class="form-group">
-                <label for="${memberId}-name" class="form-label">Prénom Nom</label>
-                <input type="text" id="${memberId}-name" class="form-input council-member-name">
-            </div>
-            <div class="form-group">
-                <label for="${memberId}-email" class="form-label">Email</label>
-                <input type="email" id="${memberId}-email" class="form-input council-member-email">
-            </div>
-            <div class="form-group">
-                <label for="${memberId}-phone" class="form-label">Téléphone</label>
-                <input type="tel" id="${memberId}-phone" class="form-input council-member-phone">
+            <div class="form-grid-2x2">
+                <div class="form-group">
+                    <label for="${memberId}-firstname" class="form-label">Prénom</label>
+                    <input type="text" id="${memberId}-firstname" class="form-input council-member-firstname">
+                </div>
+                <div class="form-group">
+                    <label for="${memberId}-lastname" class="form-label">Nom</label>
+                    <input type="text" id="${memberId}-lastname" class="form-input council-member-lastname">
+                </div>
+                <div class="form-group">
+                    <label for="${memberId}-email" class="form-label">Email</label>
+                    <input type="email" id="${memberId}-email" class="form-input council-member-email">
+                </div>
+                <div class="form-group">
+                    <label for="${memberId}-phone" class="form-label">Téléphone</label>
+                    <input type="tel" id="${memberId}-phone" class="form-input council-member-phone">
+                </div>
             </div>
         </div>
     `;
@@ -548,12 +557,18 @@ function removeCouncilMember(memberId) {
 async function handleQuoteSubmission() {
     const email = emailInput.value.trim();
     const postalCode = postalCodeMain ? postalCodeMain.value.trim() : '';
-    const userNameVal = userName.value.trim();
+    const userFirstnameVal = userFirstname.value.trim();
+    const userLastnameVal = userLastname.value.trim();
     const userPhoneVal = userPhone.value.trim();
 
     // Validations champs obligatoires
-    if (!userNameVal) {
-        alert('Veuillez remplir votre Prénom Nom');
+    if (!userFirstnameVal) {
+        alert('Veuillez remplir votre Prénom');
+        return;
+    }
+
+    if (!userLastnameVal) {
+        alert('Veuillez remplir votre Nom');
         return;
     }
 
@@ -587,12 +602,13 @@ async function handleQuoteSubmission() {
 
     // Validation président (si non coché, au moins 1 champ doit être rempli)
     const isPres = isPresident.checked;
-    const presName = presidentName.value.trim();
+    const presFirstname = presidentFirstname.value.trim();
+    const presLastname = presidentLastname.value.trim();
     const presEmail = presidentEmail.value.trim();
     const presPhone = presidentPhone.value.trim();
 
-    if (!isPres && !presName && !presEmail && !presPhone) {
-        alert('Veuillez remplir au moins un champ du président du conseil syndical (Nom, Email ou Téléphone), ou cochez "Je suis le président"');
+    if (!isPres && !presFirstname && !presLastname && !presEmail && !presPhone) {
+        alert('Veuillez remplir au moins un champ du président du conseil syndical (Prénom, Nom, Email ou Téléphone), ou cochez "Je suis le président"');
         return;
     }
 
@@ -600,13 +616,15 @@ async function handleQuoteSubmission() {
     const councilMembers = [];
     const memberItems = document.querySelectorAll('.council-member-item');
     memberItems.forEach(item => {
-        const memberName = item.querySelector('.council-member-name').value.trim();
+        const memberFirstname = item.querySelector('.council-member-firstname').value.trim();
+        const memberLastname = item.querySelector('.council-member-lastname').value.trim();
         const memberEmail = item.querySelector('.council-member-email').value.trim();
         const memberPhone = item.querySelector('.council-member-phone').value.trim();
 
-        if (memberName || memberEmail || memberPhone) {
+        if (memberFirstname || memberLastname || memberEmail || memberPhone) {
             councilMembers.push({
-                name: memberName,
+                firstname: memberFirstname,
+                lastname: memberLastname,
                 email: memberEmail,
                 phone: memberPhone
             });
@@ -620,7 +638,8 @@ async function handleQuoteSubmission() {
     // Créer le contenu du devis
     const quoteData = {
         // Infos utilisateur
-        userName: userNameVal,
+        userFirstname: userFirstnameVal,
+        userLastname: userLastnameVal,
         email: email,
         userPhone: userPhoneVal,
 
@@ -639,7 +658,8 @@ async function handleQuoteSubmission() {
 
         // Président
         isPresident: isPres,
-        presidentName: isPres ? userNameVal : presName,
+        presidentFirstname: isPres ? userFirstnameVal : presFirstname,
+        presidentLastname: isPres ? userLastnameVal : presLastname,
         presidentEmail: isPres ? email : presEmail,
         presidentPhone: isPres ? userPhoneVal : presPhone,
 
@@ -678,7 +698,8 @@ async function handleQuoteSubmission() {
         // Préparer les données JSON
         const payload = {
             // Infos utilisateur
-            userName: quoteData.userName,
+            userFirstname: quoteData.userFirstname,
+            userLastname: quoteData.userLastname,
             email: quoteData.email,
             userPhone: quoteData.userPhone,
 
@@ -697,7 +718,8 @@ async function handleQuoteSubmission() {
 
             // Président
             isPresident: quoteData.isPresident.toString(),
-            presidentName: quoteData.presidentName,
+            presidentFirstname: quoteData.presidentFirstname,
+            presidentLastname: quoteData.presidentLastname,
             presidentEmail: quoteData.presidentEmail,
             presidentPhone: quoteData.presidentPhone,
 
