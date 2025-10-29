@@ -35,8 +35,8 @@ const fileName = document.getElementById('file-name');
 
 // Nouveaux éléments DOM
 const propertyAddress = document.getElementById('property-address');
-const dpeDateGroup = document.getElementById('dpe-date-group');
 const dpeDate = document.getElementById('dpe-date');
+const dpeWarning = document.getElementById('dpe-warning');
 const userName = document.getElementById('user-name');
 const userPhone = document.getElementById('user-phone');
 const isPresident = document.getElementById('is-president');
@@ -52,6 +52,9 @@ const paymentBtn = document.getElementById('payment-btn');
 
 // Compteur de membres du conseil
 let councilMemberCount = 0;
+
+// Date limite DPE
+const DPE_CUTOFF_DATE = new Date('2021-07-01');
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
@@ -127,24 +130,26 @@ function setupEventListeners() {
             }
             // Gérer les boutons DPE
             else if (btn.dataset.dpe !== undefined) {
+                // Vérifier si le bouton est désactivé
+                if (btn.disabled) {
+                    return;
+                }
+
                 const group = btn.parentElement;
                 group.querySelectorAll('.building-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 includeDPE = btn.dataset.dpe === 'true';
-
-                // Afficher/masquer le champ date DPE
-                if (includeDPE) {
-                    dpeDateGroup.style.display = 'block';
-                } else {
-                    dpeDateGroup.style.display = 'none';
-                    dpeDate.value = '';
-                }
 
                 calculateAndDisplayPrice();
                 checkAsteriskDisplay();
             }
         });
     });
+
+    // Validation date DPE
+    if (dpeDate) {
+        dpeDate.addEventListener('change', checkDpeDate);
+    }
 
     // Checkbox "Je suis le président"
     if (isPresident) {
@@ -414,6 +419,86 @@ function updateSliderProgress() {
 
     const percentage = ((value - min) / (max - min)) * 100;
     sliderProgress.style.width = `${percentage}%`;
+}
+
+/**
+ * Vérifier la date DPE et activer/désactiver les boutons
+ */
+function checkDpeDate() {
+    const dateValue = dpeDate.value;
+
+    // Récupérer les boutons DPE
+    const dpeBtns = document.querySelectorAll('[data-dpe]');
+    const btnSansDpe = Array.from(dpeBtns).find(btn => btn.dataset.dpe === 'false');
+    const btnAvecDpe = Array.from(dpeBtns).find(btn => btn.dataset.dpe === 'true');
+
+    if (!dateValue) {
+        // Pas de date : choix libre
+        if (btnSansDpe) {
+            btnSansDpe.disabled = false;
+            btnSansDpe.style.opacity = '1';
+            btnSansDpe.style.cursor = 'pointer';
+        }
+        if (btnAvecDpe) {
+            btnAvecDpe.disabled = false;
+            btnAvecDpe.style.opacity = '1';
+            btnAvecDpe.style.cursor = 'pointer';
+        }
+        if (dpeWarning) {
+            dpeWarning.style.display = 'none';
+        }
+        return;
+    }
+
+    // Parser la date
+    const selectedDate = new Date(dateValue);
+
+    if (selectedDate < DPE_CUTOFF_DATE) {
+        // Date avant 01/07/2021 : DPE obligatoire
+        console.log('DPE avant 01/07/2021 : DPE obligatoire');
+
+        // Désactiver le bouton "Sans DPE"
+        if (btnSansDpe) {
+            btnSansDpe.disabled = true;
+            btnSansDpe.style.opacity = '0.5';
+            btnSansDpe.style.cursor = 'not-allowed';
+            btnSansDpe.classList.remove('active');
+        }
+
+        // Activer et sélectionner "Avec DPE"
+        if (btnAvecDpe) {
+            btnAvecDpe.disabled = false;
+            btnAvecDpe.style.opacity = '1';
+            btnAvecDpe.style.cursor = 'pointer';
+            btnAvecDpe.classList.add('active');
+        }
+
+        // Afficher le warning
+        if (dpeWarning) {
+            dpeWarning.style.display = 'block';
+        }
+
+        // Mettre à jour l'état
+        includeDPE = true;
+        calculateAndDisplayPrice();
+        checkAsteriskDisplay();
+
+    } else {
+        // Date après 01/07/2021 : choix libre
+        if (btnSansDpe) {
+            btnSansDpe.disabled = false;
+            btnSansDpe.style.opacity = '1';
+            btnSansDpe.style.cursor = 'pointer';
+        }
+        if (btnAvecDpe) {
+            btnAvecDpe.disabled = false;
+            btnAvecDpe.style.opacity = '1';
+            btnAvecDpe.style.cursor = 'pointer';
+        }
+        if (dpeWarning) {
+            dpeWarning.style.display = 'none';
+        }
+    }
 }
 
 /**

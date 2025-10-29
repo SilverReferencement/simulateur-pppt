@@ -15,16 +15,16 @@
             </div>
 
             <div class="content">
-                <!-- Adresse de la copropriété -->
-                <div class="input-group">
-                    <label for="property-address" class="label-text">Adresse de la copropriété (facultatif)</label>
-                    <input type="text" id="property-address" class="form-input-main" placeholder="Rue, Ville...">
-                </div>
-
                 <!-- Code postal -->
                 <div class="input-group">
                     <label for="postal-code-main" class="label-text">Code postal de l'immeuble</label>
                     <input type="text" id="postal-code-main" class="form-input-main" pattern="[0-9]{5}" maxlength="5">
+                </div>
+
+                <!-- Adresse de la copropriété -->
+                <div class="input-group">
+                    <label for="property-address" class="label-text">Adresse de la copropriété</label>
+                    <input type="text" id="property-address" class="form-input-main" placeholder="Rue, Ville..." autocomplete="off">
                 </div>
 
                 <!-- Nombre d'immeubles -->
@@ -63,21 +63,24 @@
                     </div>
                 </div>
 
+                <!-- Date du dernier DPE -->
+                <div class="input-group">
+                    <label for="dpe-date" class="label-text">Date du dernier DPE</label>
+                    <input type="date" id="dpe-date" class="form-input-main">
+                </div>
+
                 <!-- Option DPE Collectif -->
                 <div class="input-group">
                     <label>
                         <span class="label-text">DPE Collectif</span>
                     </label>
-                    <div class="building-selector">
+                    <div class="building-selector building-selector-centered">
                         <button class="building-btn active" data-dpe="false">Sans DPE Collectif</button>
                         <button class="building-btn" data-dpe="true">Avec DPE Collectif</button>
                     </div>
-                </div>
-
-                <!-- Date du dernier DPE -->
-                <div class="input-group" id="dpe-date-group" style="display: none;">
-                    <label for="dpe-date" class="label-text">Date du dernier DPE</label>
-                    <input type="date" id="dpe-date" class="form-input-main">
+                    <p class="dpe-warning" id="dpe-warning" style="display: none; color: #dc2626; font-size: 0.9rem; margin-top: 0.5rem; font-weight: 500;">
+                        ⚠️ Tout DPE collectif réalisé avant le 01/07/2021 n'est plus valable
+                    </p>
                 </div>
 
                 <!-- Résultat du prix -->
@@ -172,18 +175,18 @@
                     <h3 class="form-section-title">Informations complémentaires</h3>
 
                     <div class="form-group">
-                        <label for="ag-date" class="form-label">Prochaine date d'AG (facultatif)</label>
+                        <label for="ag-date" class="form-label">Prochaine date d'AG</label>
                         <input type="date" id="ag-date" class="form-input">
                     </div>
 
                     <div class="form-group">
-                        <label for="comment" class="form-label">Commentaire à destination de Atlas PPPT (facultatif)</label>
+                        <label for="comment" class="form-label">Commentaire à destination de Atlas PPPT</label>
                         <textarea id="comment" class="form-input" rows="3"></textarea>
                     </div>
 
                     <div class="form-group">
                         <div class="form-label-wrapper">
-                            <label for="dpe-file-input" class="form-label">Dernier DPE collectif (facultatif)</label>
+                            <label for="dpe-file-input" class="form-label">Dernier DPE collectif</label>
                             <span class="info-tooltip" data-tooltip="Document disponible sur le site de votre syndic ou sur demande">ℹ️</span>
                         </div>
                         <div class="file-upload-wrapper">
