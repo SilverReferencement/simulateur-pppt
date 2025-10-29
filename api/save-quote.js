@@ -70,17 +70,35 @@ async function saveToSheet(quoteData) {
     const rows = existingData.data.values || [];
     const nextRow = rows.length + 1;
 
+    // Formatter les membres du conseil
+    const councilMembersText = quoteData.councilMembers && quoteData.councilMembers.length > 0
+        ? quoteData.councilMembers.map((m, i) =>
+            `Membre ${i+1}: ${m.name || '-'} | ${m.email || '-'} | ${m.phone || '-'}`
+          ).join('\n')
+        : '';
+
     const row = [
         quoteData.quoteId,
         new Date(quoteData.date).toLocaleString('fr-FR'),
+        quoteData.userName,
         quoteData.email,
+        quoteData.userPhone,
+        quoteData.propertyAddress,
         quoteData.postalCode,
         quoteData.department,
+        quoteData.isIDF ? 'Oui' : 'Non',
         quoteData.lots,
         quoteData.buildings,
         quoteData.includeDPE ? 'Oui' : 'Non',
+        quoteData.dpeDate,
         quoteData.price,
-        quoteData.isIDF ? 'Oui' : 'Non',
+        quoteData.isPresident ? 'Oui' : 'Non',
+        quoteData.presidentName,
+        quoteData.presidentEmail,
+        quoteData.presidentPhone,
+        councilMembersText,
+        quoteData.agDate,
+        quoteData.comment,
         quoteData.fileUrl || '',
         quoteData.fileName || '',
         quoteData.timestamp
@@ -88,7 +106,7 @@ async function saveToSheet(quoteData) {
 
     await sheets.spreadsheets.values.update({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A${nextRow}:M${nextRow}`,
+        range: `${SHEET_NAME}!A${nextRow}`,
         valueInputOption: 'USER_ENTERED',
         requestBody: {
             values: [row]
@@ -112,18 +130,47 @@ async function generatePdfFromTemplate(quoteData) {
 
         console.log('📤 Calling Apps Script webhook for PDF generation...');
 
+        // Formatter les membres du conseil pour le PDF
+        const councilMembersText = quoteData.councilMembers && quoteData.councilMembers.length > 0
+            ? quoteData.councilMembers.map((m, i) =>
+                `Membre ${i+1}: ${m.name || '-'} | ${m.email || '-'} | ${m.phone || '-'}`
+              ).join('\n')
+            : '';
+
         // Préparer les données pour le webhook
         const payload = {
             quoteId: quoteData.quoteId,
             date: new Date(quoteData.date).toLocaleDateString('fr-FR'),
-            clientName: quoteData.clientName || '',
-            clientEmail: quoteData.email,
-            clientPhone: quoteData.clientPhone || '',
-            address: `${quoteData.postalCode} - ${quoteData.department}`,
-            totalPrice: quoteData.price + ' €',
-            budgetEC: quoteData.budgetEC || '',
-            budgetCE: quoteData.budgetCE || '',
-            lots: `Lots: ${quoteData.lots}\nImmeubles: ${quoteData.buildings}\nDPE: ${quoteData.includeDPE ? 'Oui' : 'Non'}`
+
+            // Client
+            userName: quoteData.userName,
+            userEmail: quoteData.email,
+            userPhone: quoteData.userPhone,
+
+            // Copropriété
+            propertyAddress: quoteData.propertyAddress,
+            postalCode: quoteData.postalCode,
+            department: quoteData.department,
+
+            // Devis
+            lots: quoteData.lots.toString(),
+            buildings: quoteData.buildings.toString(),
+            includeDPE: quoteData.includeDPE ? 'Oui' : 'Non',
+            dpeDate: quoteData.dpeDate,
+            price: quoteData.price + ' €',
+
+            // Président
+            isPresident: quoteData.isPresident ? 'Oui' : 'Non',
+            presidentName: quoteData.presidentName,
+            presidentEmail: quoteData.presidentEmail,
+            presidentPhone: quoteData.presidentPhone,
+
+            // Membres conseil
+            councilMembers: councilMembersText,
+
+            // Infos complémentaires
+            agDate: quoteData.agDate,
+            comment: quoteData.comment
         };
 
         // Appeler le webhook
@@ -167,6 +214,13 @@ async function generatePdfFromTemplate(quoteData) {
 async function sendInternalEmail(quoteData) {
     const sheetUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}`;
 
+    // Formatter les membres du conseil
+    const councilMembersHTML = quoteData.councilMembers && quoteData.councilMembers.length > 0
+        ? quoteData.councilMembers.map((m, i) => `
+            <li><strong>Membre ${i+1}:</strong> ${m.name || '-'} | ${m.email || '-'} | ${m.phone || '-'}</li>
+        `).join('')
+        : '<li><em>Aucun membre ajouté</em></li>';
+
     const htmlBody = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); color: white; padding: 20px; border-radius: 8px;">
@@ -175,16 +229,34 @@ async function sendInternalEmail(quoteData) {
             </div>
 
             <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin-top: 20px;">
-                <h3>📋 Détails du Devis</h3>
+                <h3>👤 Informations Client</h3>
 
                 <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
-                    <strong style="color: #3DA280;">Client:</strong> ${quoteData.email}
+                    <strong style="color: #3DA280;">Nom:</strong> ${quoteData.userName}
                 </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Email:</strong> ${quoteData.email}
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Téléphone:</strong> ${quoteData.userPhone}
+                </div>
+
+                <h3 style="margin-top: 25px;">🏢 Copropriété</h3>
+
+                ${quoteData.propertyAddress ? `
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Adresse:</strong> ${quoteData.propertyAddress}
+                </div>
+                ` : ''}
 
                 <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
                     <strong style="color: #3DA280;">Code Postal:</strong> ${quoteData.postalCode} (${quoteData.department})
                     ${quoteData.isIDF ? '<strong>- Île-de-France</strong>' : '<strong>- Hors IDF</strong>'}
                 </div>
+
+                <h3 style="margin-top: 25px;">📋 Détails du Devis</h3>
 
                 <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
                     <strong style="color: #3DA280;">Nombre de lots:</strong> ${quoteData.lots}
@@ -195,12 +267,44 @@ async function sendInternalEmail(quoteData) {
                 </div>
 
                 <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
-                    <strong style="color: #3DA280;">DPE inclus:</strong> ${quoteData.includeDPE ? '✅ Oui' : '❌ Non'}
+                    <strong style="color: #3DA280;">DPE Collectif:</strong> ${quoteData.includeDPE ? '✅ Oui' : '❌ Non'}
+                    ${quoteData.dpeDate ? `<br><small>Date du dernier DPE: ${quoteData.dpeDate}</small>` : ''}
                 </div>
 
                 <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
                     <strong style="color: #3DA280;">Prix calculé:</strong> <strong style="font-size: 1.2em; color: #3DA280;">${quoteData.price} €</strong>
                 </div>
+
+                <h3 style="margin-top: 25px;">🏛️ Conseil Syndical</h3>
+
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Président:</strong> ${quoteData.isPresident ? '✅ Le demandeur' : quoteData.presidentName || '-'}
+                    ${!quoteData.isPresident && quoteData.presidentEmail ? `<br><small>Email: ${quoteData.presidentEmail}</small>` : ''}
+                    ${!quoteData.isPresident && quoteData.presidentPhone ? `<br><small>Tél: ${quoteData.presidentPhone}</small>` : ''}
+                </div>
+
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Membres du conseil:</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        ${councilMembersHTML}
+                    </ul>
+                </div>
+
+                ${quoteData.agDate || quoteData.comment ? `
+                <h3 style="margin-top: 25px;">📝 Informations complémentaires</h3>
+                ` : ''}
+
+                ${quoteData.agDate ? `
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Prochaine AG:</strong> ${quoteData.agDate}
+                </div>
+                ` : ''}
+
+                ${quoteData.comment ? `
+                <div style="margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #3DA280;">
+                    <strong style="color: #3DA280;">Commentaire:</strong><br>${quoteData.comment}
+                </div>
+                ` : ''}
 
                 <div style="margin-top: 20px;">
                     <a href="${sheetUrl}" style="display: inline-block; padding: 12px 24px; background: #3DA280; color: white; text-decoration: none; border-radius: 6px;">📊 Voir dans Google Sheets</a>
@@ -372,7 +476,7 @@ async function sendClientEmail(quoteData, pdfBuffer) {
                     <div style="text-align: center; margin: 35px 0;">
                         <a href="mailto:${process.env.EMAIL_FROM}?subject=Validation devis ${quoteData.quoteId}"
                            style="display: inline-block; background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(61, 162, 128, 0.3);">
-                            Valider le devis
+                            Valider le devis et payer la prestation
                         </a>
                     </div>
 
@@ -458,7 +562,7 @@ module.exports = async (req, res) => {
         const data = req.body;
 
         // Validation basique
-        if (!data.email || !data.postalCode || !data.lots || !data.buildings || !data.price) {
+        if (!data.email || !data.postalCode || !data.lots || !data.buildings || !data.price || !data.userName || !data.userPhone) {
             return res.status(400).json({
                 success: false,
                 error: 'Missing required fields'
@@ -469,18 +573,55 @@ module.exports = async (req, res) => {
         const quoteId = await generateUniqueId();
         console.log('🆔 Generated ID:', quoteId);
 
+        // Parser council members si c'est une string JSON
+        let councilMembers = [];
+        if (data.councilMembers) {
+            try {
+                councilMembers = typeof data.councilMembers === 'string'
+                    ? JSON.parse(data.councilMembers)
+                    : data.councilMembers;
+            } catch (e) {
+                console.error('Error parsing council members:', e);
+            }
+        }
+
         // Préparer les données
         const quoteData = {
             quoteId,
             date: new Date().toISOString(),
+
+            // Infos utilisateur
+            userName: data.userName,
             email: data.email,
+            userPhone: data.userPhone,
+
+            // Infos copropriété
+            propertyAddress: data.propertyAddress || '',
             postalCode: data.postalCode,
             department: data.department || data.postalCode.substring(0, 2),
+            isIDF: data.isIDF === 'true' || data.isIDF === true,
+
+            // Détails devis
             lots: parseInt(data.lots),
             buildings: parseInt(data.buildings),
             includeDPE: data.includeDPE === 'true' || data.includeDPE === true,
+            dpeDate: data.dpeDate || '',
             price: parseFloat(data.price),
-            isIDF: data.isIDF === 'true' || data.isIDF === true,
+
+            // Président
+            isPresident: data.isPresident === 'true' || data.isPresident === true,
+            presidentName: data.presidentName || '',
+            presidentEmail: data.presidentEmail || '',
+            presidentPhone: data.presidentPhone || '',
+
+            // Membres conseil
+            councilMembers: councilMembers,
+
+            // Infos complémentaires
+            agDate: data.agDate || '',
+            comment: data.comment || '',
+
+            // Fichier
             fileUrl: null,
             fileName: null,
             timestamp: Date.now()

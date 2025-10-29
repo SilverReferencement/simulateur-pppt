@@ -61,17 +61,39 @@ function generatePdfFromTemplate(quoteData) {
   const doc = DocumentApp.openById(docId);
   const body = doc.getBody();
 
-  // Remplacements
+  // Remplacements - Infos principales
   body.replaceText('{{quoteId}}', quoteData.quoteId || '');
   body.replaceText('{{date}}', quoteData.date || '');
-  body.replaceText('{{clientName}}', quoteData.clientName || '');
-  body.replaceText('{{clientEmail}}', quoteData.clientEmail || '');
-  body.replaceText('{{clientPhone}}', quoteData.clientPhone || '');
-  body.replaceText('{{address}}', quoteData.address || '');
-  body.replaceText('{{totalPrice}}', quoteData.totalPrice || '');
-  body.replaceText('{{budgetEC}}', quoteData.budgetEC || '');
-  body.replaceText('{{budgetCE}}', quoteData.budgetCE || '');
+
+  // Client
+  body.replaceText('{{userName}}', quoteData.userName || '');
+  body.replaceText('{{userEmail}}', quoteData.userEmail || '');
+  body.replaceText('{{userPhone}}', quoteData.userPhone || '');
+
+  // Copropriété
+  body.replaceText('{{propertyAddress}}', quoteData.propertyAddress || '');
+  body.replaceText('{{postalCode}}', quoteData.postalCode || '');
+  body.replaceText('{{department}}', quoteData.department || '');
+
+  // Devis
   body.replaceText('{{lots}}', quoteData.lots || '');
+  body.replaceText('{{buildings}}', quoteData.buildings || '');
+  body.replaceText('{{includeDPE}}', quoteData.includeDPE || 'Non');
+  body.replaceText('{{dpeDate}}', quoteData.dpeDate || '');
+  body.replaceText('{{price}}', quoteData.price || '');
+
+  // Président
+  body.replaceText('{{isPresident}}', quoteData.isPresident || 'Non');
+  body.replaceText('{{presidentName}}', quoteData.presidentName || '');
+  body.replaceText('{{presidentEmail}}', quoteData.presidentEmail || '');
+  body.replaceText('{{presidentPhone}}', quoteData.presidentPhone || '');
+
+  // Membres conseil syndical
+  body.replaceText('{{councilMembers}}', quoteData.councilMembers || '');
+
+  // Infos complémentaires
+  body.replaceText('{{agDate}}', quoteData.agDate || '');
+  body.replaceText('{{comment}}', quoteData.comment || '');
 
   // Sauvegarder et fermer
   doc.saveAndClose();
