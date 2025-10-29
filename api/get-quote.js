@@ -6,7 +6,7 @@
 const { google } = require('googleapis');
 
 // Configuration Google Sheets
-const SPREADSHEET_ID = '1CcWz0gqy8b91f3HdQc7BU9fwShsN0z9IbQcIdMC2o5Q';
+const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
 const SHEET_NAME = 'Devis';
 
 /**
