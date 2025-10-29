@@ -530,7 +530,7 @@ async function sendClientEmail(quoteData, pdfBuffer) {
 
                     <!-- CTA Button -->
                     <div style="text-align: center; margin: 35px 0;">
-                        <a href="${process.env.SIMULATOR_URL || 'https://charles-dupin44.github.io/Automatisation-Creation-simulateur-Prix-PPPT'}/?quoteId=${quoteData.quoteId}"
+                        <a href="${process.env.SIMULATOR_URL || 'https://simulateur-pppt.vercel.app'}/?quoteId=${quoteData.quoteId}"
                            style="display: inline-block; background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(61, 162, 128, 0.3);">
                             Valider le devis et payer la prestation
                         </a>
