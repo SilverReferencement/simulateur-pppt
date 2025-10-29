@@ -94,13 +94,67 @@ function getUrlParameter(name) {
  * Charger un devis depuis l'URL
  */
 async function loadQuoteFromUrl() {
+    // Vérifier d'abord si on a des données encodées
+    const encodedData = getUrlParameter('data');
+
+    if (encodedData) {
+        console.log('🔍 Loading quote from encoded data');
+
+        try {
+            // Décoder les données base64
+            const decoded = atob(encodedData);
+            const quotePayload = JSON.parse(decoded);
+
+            console.log('✅ Quote data decoded:', quotePayload.id);
+
+            // Convertir le format court en format complet
+            const quoteData = {
+                quoteId: quotePayload.id,
+                userFirstname: quotePayload.uf || '',
+                userLastname: quotePayload.ul || '',
+                email: quotePayload.e || '',
+                userPhone: quotePayload.p || '',
+                postalCode: quotePayload.pc || '',
+                propertyAddress: quotePayload.pa || '',
+                lots: parseInt(quotePayload.l) || 1,
+                buildings: parseInt(quotePayload.b) || 1,
+                includeDPE: quotePayload.d === '1',
+                dpeDate: quotePayload.dd || '',
+                price: quotePayload.pr || '',
+                isPresident: quotePayload.ip === '1',
+                presidentFirstname: quotePayload.pf || '',
+                presidentLastname: quotePayload.pl || '',
+                presidentEmail: quotePayload.pe || '',
+                presidentPhone: quotePayload.pp || '',
+                councilMembers: quotePayload.cm ? JSON.parse(quotePayload.cm) : [],
+                agDate: quotePayload.ag || '',
+                comment: quotePayload.c || ''
+            };
+
+            // Pré-remplir le formulaire
+            populateFormWithQuote(quoteData);
+
+            // Afficher le formulaire email automatiquement
+            emailForm.style.display = 'block';
+            emailQuoteBtn.style.display = 'none';
+
+            return;
+
+        } catch (error) {
+            console.error('❌ Error decoding quote data:', error);
+            alert('Erreur lors du chargement du devis.');
+            return;
+        }
+    }
+
+    // Ancienne méthode avec API (fallback)
     const quoteId = getUrlParameter('quoteId');
 
     if (!quoteId) {
         return; // Pas de quoteId, rien à faire
     }
 
-    console.log('🔍 Loading quote:', quoteId);
+    console.log('🔍 Loading quote via API:', quoteId);
 
     try {
         const response = await fetch(`${BACKEND_API_URL.replace('/save-quote', '/get-quote')}?id=${encodeURIComponent(quoteId)}`);

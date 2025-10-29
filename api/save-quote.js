@@ -380,6 +380,42 @@ async function sendInternalEmail(quoteData) {
 }
 
 /**
+ * Générer l'URL du simulateur avec les données encodées
+ */
+function generateQuoteUrl(quoteData) {
+    const baseUrl = process.env.SIMULATOR_URL || 'https://atlas-pppt.webflow.io/simulateur-pppt';
+
+    // Créer un objet simplifié avec uniquement les données essentielles
+    const quotePayload = {
+        id: quoteData.quoteId,
+        uf: quoteData.userFirstname,
+        ul: quoteData.userLastname,
+        e: quoteData.email,
+        p: quoteData.userPhone,
+        pc: quoteData.postalCode,
+        pa: quoteData.propertyAddress,
+        l: quoteData.lots,
+        b: quoteData.buildings,
+        d: quoteData.includeDPE ? '1' : '0',
+        dd: quoteData.dpeDate,
+        pr: quoteData.price,
+        ip: quoteData.isPresident ? '1' : '0',
+        pf: quoteData.presidentFirstname,
+        pl: quoteData.presidentLastname,
+        pe: quoteData.presidentEmail,
+        pp: quoteData.presidentPhone,
+        cm: quoteData.councilMembers.length > 0 ? JSON.stringify(quoteData.councilMembers) : '',
+        ag: quoteData.agDate,
+        c: quoteData.comment
+    };
+
+    // Encoder en base64
+    const encoded = Buffer.from(JSON.stringify(quotePayload)).toString('base64');
+
+    return `${baseUrl}?data=${encoded}`;
+}
+
+/**
  * Envoyer email client avec NOUVEAU TEMPLATE AMÉLIORÉ
  */
 async function sendClientEmail(quoteData, pdfBuffer) {
@@ -530,7 +566,7 @@ async function sendClientEmail(quoteData, pdfBuffer) {
 
                     <!-- CTA Button -->
                     <div style="text-align: center; margin: 35px 0;">
-                        <a href="${process.env.SIMULATOR_URL || 'https://atlas-pppt.webflow.io/simulateur-pppt'}?quoteId=${quoteData.quoteId}"
+                        <a href="${generateQuoteUrl(quoteData)}"
                            style="display: inline-block; background: linear-gradient(135deg, #3DA280 0%, #2D7A5F 100%); color: white; padding: 16px 40px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(61, 162, 128, 0.3);">
                             Valider le devis et payer la prestation
                         </a>
