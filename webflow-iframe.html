@@ -73,10 +73,10 @@
             <div class="pppt-loader-text">Chargement du simulateur...</div>
         </div>
 
-        <!-- Iframe vers GitHub Pages - SE MET À JOUR AUTOMATIQUEMENT -->
+        <!-- Iframe vers Vercel - SE MET À JOUR AUTOMATIQUEMENT -->
         <iframe
             id="pppt-iframe"
-            src="https://silverreferencement.github.io/simulateur-pppt/"
+            src=""
             title="Simulateur PPPT"
             loading="lazy"
             scrolling="no"
@@ -87,10 +87,36 @@
 </div>
 
 <script>
+// Fonction pour récupérer les paramètres URL de la page Webflow
+function getUrlParameters() {
+    const params = new URLSearchParams(window.location.search);
+    return params.toString();
+}
+
+// Construire l'URL de l'iframe avec les paramètres
+function buildIframeUrl() {
+    const baseUrl = 'https://simulateur-pppt.vercel.app/';
+    const params = getUrlParameters();
+
+    if (params) {
+        return baseUrl + '?' + params;
+    }
+    return baseUrl;
+}
+
+// Définir l'URL de l'iframe au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('pppt-iframe');
+    if (iframe) {
+        iframe.src = buildIframeUrl();
+        console.log('📍 Iframe URL:', iframe.src);
+    }
+});
+
 // Écouter les messages de l'iframe pour ajuster la hauteur dynamiquement
 window.addEventListener('message', function(event) {
-    // Sécurité: vérifier l'origine (GitHub Pages)
-    if (event.origin !== 'https://silverreferencement.github.io') {
+    // Sécurité: vérifier l'origine (Vercel)
+    if (event.origin !== 'https://simulateur-pppt.vercel.app') {
         return;
     }
 
