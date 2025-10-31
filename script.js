@@ -1020,7 +1020,7 @@ async function handleQuoteSubmission() {
         if (result.success) {
             console.log('✅ Devis sauvegardé:', result.quoteId);
 
-            // Finaliser la barre de progression (compléter jusqu'à 100% en 1,5 secondes)
+            // Finaliser la barre de progression (compléter jusqu'à 100% en 2 secondes)
             finishProgressBar();
 
             // Afficher un message de confirmation après que la barre soit complète
@@ -1035,7 +1035,7 @@ async function handleQuoteSubmission() {
 
                 // Cacher la barre de progression une fois l'email envoyé
                 hideProgressBar();
-            }, 1600); // Légèrement après la finalisation
+            }, 2100); // Légèrement après la finalisation de 2 secondes
 
             // Réinitialiser le formulaire après 30 secondes
             setTimeout(() => {
@@ -1070,7 +1070,9 @@ let progressInterval = null;
 let currentProgress = 0;
 
 /**
- * Démarrer la barre de progression (15 secondes, 1% par 1%)
+ * Démarrer la barre de progression avec ralentissement progressif
+ * - 0% à 65% : 150ms par % (rapide)
+ * - 65% à 95% : 250ms par % (plus lent, 30% en 7,5 secondes)
  */
 function startProgressBar() {
     const progressContainer = document.getElementById('quote-progress-container');
@@ -1085,26 +1087,31 @@ function startProgressBar() {
     progressBar.style.width = '0%';
     progressPercentage.textContent = '0%';
 
-    // Avancer de 1% toutes les 150ms (= 15 secondes pour atteindre 100%)
-    // Mais on s'arrête à 95% pour laisser la place à la finalisation
-    progressInterval = setInterval(() => {
+    function updateProgress() {
         if (currentProgress < 95) {
             currentProgress += 1;
             progressBar.style.width = currentProgress + '%';
             progressPercentage.textContent = currentProgress + '%';
+
+            // Déterminer la vitesse en fonction du pourcentage
+            const delay = currentProgress < 65 ? 150 : 250; // 150ms jusqu'à 65%, puis 250ms
+            progressInterval = setTimeout(updateProgress, delay);
         } else {
             // Arrêter à 95% et attendre la vraie réponse
-            clearInterval(progressInterval);
+            progressInterval = null;
         }
-    }, 150); // 150ms par % = 15 secondes pour 100%
+    }
+
+    // Démarrer la progression
+    updateProgress();
 }
 
 /**
- * Finaliser la barre de progression (compléter jusqu'à 100% en 1,5 secondes)
+ * Finaliser la barre de progression (compléter jusqu'à 100% en 2 secondes)
  */
 function finishProgressBar() {
     if (progressInterval) {
-        clearInterval(progressInterval);
+        clearTimeout(progressInterval);
     }
 
     const progressBar = document.getElementById('quote-progress-bar');
@@ -1112,7 +1119,7 @@ function finishProgressBar() {
 
     // Calculer le pourcentage restant
     const remaining = 100 - currentProgress;
-    const stepTime = 1500 / remaining; // 1,5 secondes réparties sur les % restants
+    const stepTime = 2000 / remaining; // 2 secondes réparties sur les % restants
 
     progressInterval = setInterval(() => {
         if (currentProgress < 100) {
@@ -1130,7 +1137,8 @@ function finishProgressBar() {
  */
 function stopProgressBar() {
     if (progressInterval) {
-        clearInterval(progressInterval);
+        clearTimeout(progressInterval); // Pour startProgressBar qui utilise setTimeout
+        clearInterval(progressInterval); // Pour finishProgressBar qui utilise setInterval
         progressInterval = null;
     }
 }
