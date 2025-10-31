@@ -965,6 +965,9 @@ async function handleQuoteSubmission() {
             Génération du devis et envoi en cours...
         `;
 
+        // Démarrer la barre de progression
+        startProgressBar();
+
         // Préparer les données JSON
         const payload = {
             // Infos utilisateur
@@ -1017,24 +1020,34 @@ async function handleQuoteSubmission() {
         if (result.success) {
             console.log('✅ Devis sauvegardé:', result.quoteId);
 
-            // Afficher un message de confirmation
-            submitQuoteBtn.innerHTML = `
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                Devis envoyé avec succès !
-            `;
-            submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+            // Finaliser la barre de progression (compléter jusqu'à 100% en 1,5 secondes)
+            finishProgressBar();
 
-            // Réinitialiser le formulaire après 3 secondes
+            // Afficher un message de confirmation après que la barre soit complète
+            setTimeout(() => {
+                submitQuoteBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Devis envoyé avec succès !
+                `;
+                submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+            }, 1600); // Légèrement après la finalisation
+
+            // Réinitialiser le formulaire après 10 secondes
             setTimeout(() => {
                 resetForm();
-            }, 3000);
+                hideProgressBar();
+            }, 10000);
         } else {
             throw new Error(result.error || 'Erreur lors de la sauvegarde');
         }
     } catch (error) {
         console.error('❌ Erreur:', error);
+
+        // Arrêter et cacher la barre de progression
+        stopProgressBar();
+        hideProgressBar();
 
         // Réactiver le bouton
         submitQuoteBtn.disabled = false;
@@ -1047,6 +1060,86 @@ async function handleQuoteSubmission() {
 
         alert('Une erreur est survenue lors de l\'envoi du devis. Veuillez réessayer.');
     }
+}
+
+// ==================== GESTION BARRE DE PROGRESSION ====================
+
+let progressInterval = null;
+let currentProgress = 0;
+
+/**
+ * Démarrer la barre de progression (15 secondes, 1% par 1%)
+ */
+function startProgressBar() {
+    const progressContainer = document.getElementById('quote-progress-container');
+    const progressBar = document.getElementById('quote-progress-bar');
+    const progressPercentage = document.getElementById('quote-progress-percentage');
+
+    // Afficher la barre
+    progressContainer.style.display = 'block';
+
+    // Réinitialiser
+    currentProgress = 0;
+    progressBar.style.width = '0%';
+    progressPercentage.textContent = '0%';
+
+    // Avancer de 1% toutes les 150ms (= 15 secondes pour atteindre 100%)
+    // Mais on s'arrête à 95% pour laisser la place à la finalisation
+    progressInterval = setInterval(() => {
+        if (currentProgress < 95) {
+            currentProgress += 1;
+            progressBar.style.width = currentProgress + '%';
+            progressPercentage.textContent = currentProgress + '%';
+        } else {
+            // Arrêter à 95% et attendre la vraie réponse
+            clearInterval(progressInterval);
+        }
+    }, 150); // 150ms par % = 15 secondes pour 100%
+}
+
+/**
+ * Finaliser la barre de progression (compléter jusqu'à 100% en 1,5 secondes)
+ */
+function finishProgressBar() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+    }
+
+    const progressBar = document.getElementById('quote-progress-bar');
+    const progressPercentage = document.getElementById('quote-progress-percentage');
+
+    // Calculer le pourcentage restant
+    const remaining = 100 - currentProgress;
+    const stepTime = 1500 / remaining; // 1,5 secondes réparties sur les % restants
+
+    progressInterval = setInterval(() => {
+        if (currentProgress < 100) {
+            currentProgress += 1;
+            progressBar.style.width = currentProgress + '%';
+            progressPercentage.textContent = currentProgress + '%';
+        } else {
+            clearInterval(progressInterval);
+        }
+    }, stepTime);
+}
+
+/**
+ * Arrêter la barre de progression
+ */
+function stopProgressBar() {
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+}
+
+/**
+ * Cacher la barre de progression
+ */
+function hideProgressBar() {
+    const progressContainer = document.getElementById('quote-progress-container');
+    progressContainer.style.display = 'none';
+    currentProgress = 0;
 }
 
 /**
