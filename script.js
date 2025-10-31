@@ -1051,21 +1051,16 @@ async function handleQuoteSubmission() {
 
 /**
  * Réinitialiser le formulaire
+ * Note: Le formulaire reste visible pour permettre un nouvel envoi
  */
 function resetForm() {
     emailInput.value = '';
     dpeFileInput.value = '';
     selectedFile = null;
     fileName.textContent = 'Choisir un fichier PDF/Image';
-    emailForm.style.display = 'none';
+    // emailForm.style.display = 'none'; // SUPPRIMÉ : on garde le formulaire visible
     submitQuoteBtn.disabled = false;
-    emailQuoteBtn.innerHTML = `
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-            <polyline points="22,6 12,13 2,6"></polyline>
-        </svg>
-        Je veux recevoir un devis par email
-    `;
+    // Le bouton emailQuoteBtn n'est pas réinitialisé, le formulaire reste ouvert
     submitQuoteBtn.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="20 6 9 17 4 12"></polyline>
