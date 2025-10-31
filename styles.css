@@ -554,8 +554,8 @@ body {
     transition: all var(--transition-fast);
     pointer-events: auto;
     position: relative;
-    background: #3b82f6;
-    color: white;
+    background: transparent;
+    color: #3b82f6;
     border-radius: 4px;
     font-style: normal;
 }
