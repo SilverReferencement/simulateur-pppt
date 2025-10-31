@@ -383,7 +383,7 @@ async function sendInternalEmail(quoteData) {
  * Générer l'URL du simulateur avec les données encodées
  */
 function generateQuoteUrl(quoteData) {
-    const baseUrl = process.env.SIMULATOR_URL || 'https://atlas-pppt.webflow.io/simulateur-pppt';
+    const baseUrl = process.env.SIMULATOR_URL || 'https://atlas-pppt.fr/simulateur-pppt';
 
     // Créer un objet simplifié avec uniquement les données essentielles
     const quotePayload = {
