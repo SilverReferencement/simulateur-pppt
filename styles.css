@@ -545,9 +545,9 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
-    font-size: 0.9rem;
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
     font-weight: 600;
     cursor: help;
     opacity: 0.8;
@@ -556,7 +556,7 @@ body {
     position: relative;
     background: transparent;
     color: #3b82f6;
-    border-radius: 4px;
+    border-radius: 6px;
     font-style: normal;
 }
 
