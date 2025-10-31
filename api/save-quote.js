@@ -206,6 +206,7 @@ async function generatePdfFromTemplate(quoteData) {
             propertyAddress: quoteData.propertyAddress,
             postalCode: quoteData.postalCode,
             department: quoteData.department,
+            region: quoteData.isIDF ? 'Île-de-France' : 'Hors Île-de-France',
 
             // Devis
             lots: quoteData.lots.toString(),
@@ -226,7 +227,11 @@ async function generatePdfFromTemplate(quoteData) {
 
             // Infos complémentaires
             agDate: quoteData.agDate,
-            comment: quoteData.comment
+            comment: quoteData.comment,
+
+            // Informations entreprise
+            companyName: process.env.COMPANY_NAME || 'Atlas PPPT',
+            companyEmail: process.env.EMAIL_FROM || 'contact@atlas-pppt.fr'
         };
 
         // Appeler le webhook

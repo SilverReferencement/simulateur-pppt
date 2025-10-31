@@ -65,17 +65,19 @@ function generatePdfFromTemplate(quoteData) {
   body.replaceText('{{quoteId}}', quoteData.quoteId || '');
   body.replaceText('{{date}}', quoteData.date || '');
 
-  // Client
+  // Client (avec aliases pour compatibilité)
   body.replaceText('{{userFirstname}}', quoteData.userFirstname || '');
   body.replaceText('{{userLastname}}', quoteData.userLastname || '');
-  body.replaceText('{{userName}}', (quoteData.userFirstname || '') + ' ' + (quoteData.userLastname || '')); // Backward compatibility
+  body.replaceText('{{userName}}', (quoteData.userFirstname || '') + ' ' + (quoteData.userLastname || ''));
   body.replaceText('{{userEmail}}', quoteData.userEmail || '');
+  body.replaceText('{{clientEmail}}', quoteData.userEmail || ''); // Alias pour template
   body.replaceText('{{userPhone}}', quoteData.userPhone || '');
 
   // Copropriété
   body.replaceText('{{propertyAddress}}', quoteData.propertyAddress || '');
   body.replaceText('{{postalCode}}', quoteData.postalCode || '');
   body.replaceText('{{department}}', quoteData.department || '');
+  body.replaceText('{{region}}', quoteData.region || ''); // Région (IDF ou Hors IDF)
 
   // Devis
   body.replaceText('{{lots}}', quoteData.lots || '');
@@ -88,7 +90,7 @@ function generatePdfFromTemplate(quoteData) {
   body.replaceText('{{isPresident}}', quoteData.isPresident || 'Non');
   body.replaceText('{{presidentFirstname}}', quoteData.presidentFirstname || '');
   body.replaceText('{{presidentLastname}}', quoteData.presidentLastname || '');
-  body.replaceText('{{presidentName}}', (quoteData.presidentFirstname || '') + ' ' + (quoteData.presidentLastname || '')); // Backward compatibility
+  body.replaceText('{{presidentName}}', (quoteData.presidentFirstname || '') + ' ' + (quoteData.presidentLastname || ''));
   body.replaceText('{{presidentEmail}}', quoteData.presidentEmail || '');
   body.replaceText('{{presidentPhone}}', quoteData.presidentPhone || '');
 
@@ -98,6 +100,10 @@ function generatePdfFromTemplate(quoteData) {
   // Infos complémentaires
   body.replaceText('{{agDate}}', quoteData.agDate || '');
   body.replaceText('{{comment}}', quoteData.comment || '');
+
+  // Informations entreprise
+  body.replaceText('{{companyName}}', quoteData.companyName || 'Atlas PPPT');
+  body.replaceText('{{companyEmail}}', quoteData.companyEmail || '');
 
   // Sauvegarder et fermer
   doc.saveAndClose();
