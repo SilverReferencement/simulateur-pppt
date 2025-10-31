@@ -1032,13 +1032,15 @@ async function handleQuoteSubmission() {
                     Devis envoyé avec succès !
                 `;
                 submitQuoteBtn.style.background = 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)';
+
+                // Cacher la barre de progression une fois l'email envoyé
+                hideProgressBar();
             }, 1600); // Légèrement après la finalisation
 
-            // Réinitialiser le formulaire après 10 secondes
+            // Réinitialiser le formulaire après 30 secondes
             setTimeout(() => {
                 resetForm();
-                hideProgressBar();
-            }, 10000);
+            }, 30000);
         } else {
             throw new Error(result.error || 'Erreur lors de la sauvegarde');
         }
