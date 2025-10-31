@@ -653,7 +653,7 @@ function calculateAndDisplayPrice() {
 
     // Mise à jour des informations
     const dpeText = includeDPE ? 'Avec DPE' : 'Sans DPE';
-    const buildingText = currentBuildings === 1 ? '1 immeuble' : `${currentBuildings}${currentBuildings === 3 ? '+' : ''} immeubles`;
+    const buildingText = currentBuildings === 1 ? '1 bâtiment' : `${currentBuildings}${currentBuildings === 3 ? '+' : ''} bâtiments`;
     const lotsText = `${currentLots} lot${currentLots > 1 ? 's' : ''}`;
 
     priceInfo.innerHTML = `<span class="info-text">${dpeText} • ${buildingText} • ${lotsText}</span>`;

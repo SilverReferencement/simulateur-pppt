@@ -27,10 +27,11 @@
                     <input type="text" id="property-address" class="form-input-main" placeholder="Rue, Ville..." autocomplete="off">
                 </div>
 
-                <!-- Nombre d'immeubles -->
+                <!-- Nombre de bâtiments indépendants -->
                 <div class="input-group">
                     <label>
-                        <span class="label-text">Nombre d'immeubles</span>
+                        <span class="label-text">Nombre de bâtiments indépendants</span>
+                        <span class="info-tooltip" data-tooltip="Comptez 1 si c'est le même bloc avec plusieurs entrées (A, B, C). Comptez 2+ si ce sont des blocs séparés (pas mitoyens structurellement) ou avec équipements énergétiques distincts.">ℹ️</span>
                     </label>
                     <div class="building-selector">
                         <button class="building-btn active" data-buildings="1">1</button>
@@ -65,8 +66,11 @@
 
                 <!-- Date du dernier DPE Collectif -->
                 <div class="input-group">
-                    <label for="dpe-date" class="label-text">Date du dernier DPE Collectif</label>
-                    <input type="date" id="dpe-date" class="form-input-main">
+                    <label for="dpe-date" class="label-text">
+                        Date du dernier DPE Collectif
+                        <span class="info-tooltip" data-tooltip="Ce n'est pas le DPE de votre appartement, il s'agit du DPE collectif de l'immeuble. Où le trouver ? Dans votre espace client du site du syndic (documents copro) ou en appelant le syndic pour obtenir la date du dernier DPE collectif.">ℹ️</span>
+                    </label>
+                    <input type="date" id="dpe-date" class="form-input-main" min="2000-01-01" max="2099-12-31">
                 </div>
 
                 <!-- Message warning DPE -->
@@ -77,11 +81,11 @@
                 <!-- Option DPE Collectif -->
                 <div class="input-group">
                     <label>
-                        <span class="label-text">DPE Collectif</span>
+                        <span class="label-text">Souhaitez-vous intégrer la réalisation du DPE collectif dans votre devis ?</span>
                     </label>
                     <div class="building-selector building-selector-centered">
-                        <button class="building-btn active" data-dpe="false">Sans DPE Collectif</button>
-                        <button class="building-btn" data-dpe="true">Avec DPE Collectif</button>
+                        <button class="building-btn active" data-dpe="false">Non</button>
+                        <button class="building-btn" data-dpe="true">Oui</button>
                     </div>
                 </div>
 
@@ -192,7 +196,7 @@
 
                     <div class="form-group">
                         <label for="ag-date" class="form-label">Prochaine date d'AG</label>
-                        <input type="date" id="ag-date" class="form-input">
+                        <input type="date" id="ag-date" class="form-input" min="2000-01-01" max="2099-12-31">
                     </div>
 
                     <div class="form-group">

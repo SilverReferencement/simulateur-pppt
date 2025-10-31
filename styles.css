@@ -134,6 +134,9 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--color-text-dark);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .lots-input {
@@ -567,12 +570,15 @@ body {
     padding: 8px 12px;
     border-radius: 6px;
     font-size: 0.75rem;
-    white-space: nowrap;
+    white-space: normal;
+    max-width: 280px;
+    width: max-content;
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast);
     z-index: 1000;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    line-height: 1.4;
 }
 
 .info-tooltip::before {
