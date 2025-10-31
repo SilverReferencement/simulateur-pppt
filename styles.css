@@ -542,17 +542,27 @@ body {
 
 /* Tooltip d'information */
 .info-tooltip {
-    display: inline-block;
-    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    font-size: 0.75rem;
+    font-weight: 600;
     cursor: help;
     opacity: 0.7;
-    transition: opacity var(--transition-fast);
+    transition: all var(--transition-fast);
     pointer-events: auto;
     position: relative;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 50%;
+    font-style: normal;
 }
 
 .info-tooltip:hover {
     opacity: 1;
+    transform: scale(1.1);
 }
 
 /* Tooltip personnalisé au hover */
