@@ -681,8 +681,9 @@ function updateSliderProgress() {
 }
 
 /**
- * Vérifier la date DPE et afficher le warning si nécessaire
- * Note: On n'impose plus automatiquement "Avec DPE", l'utilisateur reste libre de choisir
+ * Vérifier la date DPE et sélectionner automatiquement le bon choix
+ * - Date AVANT 01/07/2021 : Forcer "Avec DPE collectif" (DPE obligatoire)
+ * - Date APRÈS 01/07/2021 : Présélectionner "Sans DPE collectif" (prix le plus bas)
  */
 function checkDpeDate() {
     const dateValue = dpeDate.value;
@@ -693,7 +694,17 @@ function checkDpeDate() {
     const btnAvecDpe = Array.from(dpeBtns).find(btn => btn.dataset.dpe === 'true');
 
     if (!dateValue) {
-        // Pas de date : pas de warning
+        // Pas de date : choix libre, pas de warning
+        if (btnSansDpe) {
+            btnSansDpe.disabled = false;
+            btnSansDpe.style.opacity = '1';
+            btnSansDpe.style.cursor = 'pointer';
+        }
+        if (btnAvecDpe) {
+            btnAvecDpe.disabled = false;
+            btnAvecDpe.style.opacity = '1';
+            btnAvecDpe.style.cursor = 'pointer';
+        }
         if (dpeWarning) {
             dpeWarning.style.display = 'none';
         }
@@ -704,26 +715,63 @@ function checkDpeDate() {
     const selectedDate = new Date(dateValue);
 
     if (selectedDate < DPE_CUTOFF_DATE) {
-        // Date avant 01/07/2021 : afficher le warning SEULEMENT
-        console.log('DPE avant 01/07/2021 : warning affiché');
+        // ========== Date AVANT 01/07/2021 : DPE OBLIGATOIRE ==========
+        console.log('DPE avant 01/07/2021 : DPE obligatoire');
 
-        // Afficher le warning pour informer l'utilisateur
+        // Désactiver le bouton "Sans DPE"
+        if (btnSansDpe) {
+            btnSansDpe.disabled = true;
+            btnSansDpe.style.opacity = '0.5';
+            btnSansDpe.style.cursor = 'not-allowed';
+            btnSansDpe.classList.remove('active');
+        }
+
+        // Activer et forcer "Avec DPE"
+        if (btnAvecDpe) {
+            btnAvecDpe.disabled = false;
+            btnAvecDpe.style.opacity = '1';
+            btnAvecDpe.style.cursor = 'pointer';
+            btnAvecDpe.classList.add('active');
+        }
+
+        // Afficher le warning
         if (dpeWarning) {
             dpeWarning.style.display = 'block';
         }
 
-        // Les deux boutons restent actifs, l'utilisateur choisit librement
-        // Par défaut, "Sans DPE" reste sélectionné (prix le plus bas)
+        // Forcer l'état sur "Avec DPE"
+        includeDPE = true;
+        calculateAndDisplayPrice();
+        checkAsteriskDisplay();
 
     } else {
-        // Date après 01/07/2021 : pas de warning
+        // ========== Date APRÈS 01/07/2021 : Présélectionner "Sans DPE" ==========
+        console.log('DPE après 01/07/2021 : présélectionner Sans DPE (prix le plus bas)');
+
+        // Réactiver les deux boutons
+        if (btnSansDpe) {
+            btnSansDpe.disabled = false;
+            btnSansDpe.style.opacity = '1';
+            btnSansDpe.style.cursor = 'pointer';
+            btnSansDpe.classList.add('active'); // Présélectionner "Sans DPE"
+        }
+        if (btnAvecDpe) {
+            btnAvecDpe.disabled = false;
+            btnAvecDpe.style.opacity = '1';
+            btnAvecDpe.style.cursor = 'pointer';
+            btnAvecDpe.classList.remove('active'); // Désélectionner "Avec DPE"
+        }
+
+        // Masquer le warning
         if (dpeWarning) {
             dpeWarning.style.display = 'none';
         }
-    }
 
-    // Note: On ne touche JAMAIS aux boutons ni à includeDPE
-    // L'utilisateur garde son choix actuel
+        // Présélectionner "Sans DPE" pour afficher le prix le plus bas
+        includeDPE = false;
+        calculateAndDisplayPrice();
+        checkAsteriskDisplay();
+    }
 }
 
 /**
