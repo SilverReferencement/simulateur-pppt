@@ -612,10 +612,10 @@ function calculatePrice(lots, withDPE, buildings) {
  * Affiche dès que code postal est HORS IDF (5 chiffres valides)
  */
 function checkAsteriskDisplay() {
-    if (!postalCodeMain || !dpeToggle) return;
+    if (!postalCodeMain) return;
 
     const postalCode = postalCodeMain.value.trim();
-    const dpeActivated = dpeToggle.checked;
+    const dpeActivated = includeDPE; // Utilise la variable globale includeDPE
 
     // Afficher l'astérisque si:
     // 1. Code postal valide (5 chiffres)
