@@ -61,10 +61,14 @@ function generatePdfFromTemplate(quoteData) {
   const doc = DocumentApp.openById(docId);
   const body = doc.getBody();
 
-  // Supprimer la première page si elle contient "Onglet 1"
-  const firstParagraph = body.getParagraphs()[0];
-  if (firstParagraph && firstParagraph.getText().includes('Onglet 1')) {
-    firstParagraph.removeFromParent();
+  // Supprimer tous les éléments contenant "Onglet 1"
+  const paragraphs = body.getParagraphs();
+  for (let i = 0; i < paragraphs.length; i++) {
+    const text = paragraphs[i].getText().trim();
+    if (text === 'Onglet 1' || text.includes('Onglet 1')) {
+      paragraphs[i].removeFromParent();
+      break; // Arrêter après avoir supprimé le premier
+    }
   }
 
   // Remplacements - Infos principales

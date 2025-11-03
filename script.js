@@ -1035,7 +1035,7 @@ async function handleQuoteSubmission() {
 
                 // Cacher la barre de progression une fois l'email envoyé
                 hideProgressBar();
-            }, 2100); // Légèrement après la finalisation de 2 secondes
+            }, 3000); // Après 3 secondes
 
             // Réinitialiser le formulaire après 30 secondes
             setTimeout(() => {
@@ -1071,8 +1071,8 @@ let currentProgress = 0;
 
 /**
  * Démarrer la barre de progression avec ralentissement progressif
- * - 0% à 65% : 225ms par % (rapide) +50%
- * - 65% à 95% : 375ms par % (plus lent, 30% en 11,25 secondes) +50%
+ * - 0% à 65% : 250ms par %
+ * - 65% à 95% : 400ms par %
  */
 function startProgressBar() {
     const progressContainer = document.getElementById('quote-progress-container');
@@ -1093,8 +1093,8 @@ function startProgressBar() {
             progressBar.style.width = currentProgress + '%';
             progressPercentage.textContent = currentProgress + '%';
 
-            // Déterminer la vitesse en fonction du pourcentage (+50%)
-            const delay = currentProgress < 65 ? 225 : 375;
+            // Déterminer la vitesse en fonction du pourcentage
+            const delay = currentProgress < 65 ? 250 : 400;
             progressInterval = setTimeout(updateProgress, delay);
         } else {
             // Arrêter à 95% et attendre la vraie réponse
@@ -1107,7 +1107,7 @@ function startProgressBar() {
 }
 
 /**
- * Finaliser la barre de progression (compléter jusqu'à 100% en 3 secondes) +50%
+ * Finaliser la barre de progression (compléter jusqu'à 100% en 5 secondes)
  */
 function finishProgressBar() {
     if (progressInterval) {
@@ -1119,7 +1119,7 @@ function finishProgressBar() {
 
     // Calculer le pourcentage restant
     const remaining = 100 - currentProgress;
-    const stepTime = 3000 / remaining; // 3 secondes réparties sur les % restants (+50%)
+    const stepTime = 5000 / remaining; // 5 secondes réparties sur les % restants
 
     progressInterval = setInterval(() => {
         if (currentProgress < 100) {
