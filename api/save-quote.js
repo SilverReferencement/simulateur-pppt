@@ -2,6 +2,7 @@
 const sgMail = require('@sendgrid/mail');
 const { google } = require('googleapis');
 const { PDFDocument } = require('pdf-lib');
+const pdfParse = require('pdf-parse');
 
 // Configuration SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -261,21 +262,34 @@ async function generatePdfFromTemplate(quoteData) {
 
         console.log('✅ PDF decoded, size:', pdfBuffer.length, 'bytes');
 
-        // Supprimer la première page (Onglet 1)
+        // Supprimer la première page si elle contient "Onglet"
         try {
             const pdfDoc = await PDFDocument.load(pdfBuffer);
             const pageCount = pdfDoc.getPageCount();
 
             if (pageCount > 1) {
-                pdfDoc.removePage(0); // Supprimer la première page
-                console.log('✅ First page removed (Onglet 1)');
+                // Extraire le texte du PDF complet
+                const pdfData = await pdfParse(pdfBuffer);
+                const fullText = pdfData.text || '';
 
-                const modifiedPdfBytes = await pdfDoc.save();
-                pdfBuffer = Buffer.from(modifiedPdfBytes);
-                console.log('✅ Modified PDF size:', pdfBuffer.length, 'bytes');
+                // Extraire approximativement le texte de la première page
+                // (on prend les premiers 500 caractères comme heuristique)
+                const firstPageText = fullText.substring(0, 500).toLowerCase();
+
+                // Vérifier si la première page contient "onglet"
+                if (firstPageText.includes('onglet')) {
+                    pdfDoc.removePage(0);
+                    console.log('✅ First page removed (contains "Onglet")');
+
+                    const modifiedPdfBytes = await pdfDoc.save();
+                    pdfBuffer = Buffer.from(modifiedPdfBytes);
+                    console.log('✅ Modified PDF size:', pdfBuffer.length, 'bytes');
+                } else {
+                    console.log('ℹ️ First page kept (does not contain "Onglet")');
+                }
             }
         } catch (pdfError) {
-            console.error('⚠️ Could not remove first page:', pdfError.message);
+            console.error('⚠️ Could not process PDF:', pdfError.message);
             // Continue avec le PDF original si erreur
         }
 
