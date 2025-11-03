@@ -1,6 +1,7 @@
 // Vercel Serverless Function - Sauvegarder un devis
 const sgMail = require('@sendgrid/mail');
 const { google } = require('googleapis');
+const { PDFDocument } = require('pdf-lib');
 
 // Configuration SendGrid
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -256,9 +257,27 @@ async function generatePdfFromTemplate(quoteData) {
         console.log('✅ PDF received from Apps Script');
 
         // Décoder le PDF depuis base64
-        const pdfBuffer = Buffer.from(result.pdf, 'base64');
+        let pdfBuffer = Buffer.from(result.pdf, 'base64');
 
         console.log('✅ PDF decoded, size:', pdfBuffer.length, 'bytes');
+
+        // Supprimer la première page (Onglet 1)
+        try {
+            const pdfDoc = await PDFDocument.load(pdfBuffer);
+            const pageCount = pdfDoc.getPageCount();
+
+            if (pageCount > 1) {
+                pdfDoc.removePage(0); // Supprimer la première page
+                console.log('✅ First page removed (Onglet 1)');
+
+                const modifiedPdfBytes = await pdfDoc.save();
+                pdfBuffer = Buffer.from(modifiedPdfBytes);
+                console.log('✅ Modified PDF size:', pdfBuffer.length, 'bytes');
+            }
+        } catch (pdfError) {
+            console.error('⚠️ Could not remove first page:', pdfError.message);
+            // Continue avec le PDF original si erreur
+        }
 
         return pdfBuffer;
 

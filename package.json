@@ -16,7 +16,8 @@
   "license": "MIT",
   "dependencies": {
     "@sendgrid/mail": "^8.1.6",
-    "googleapis": "^126.0.1"
+    "googleapis": "^126.0.1",
+    "pdf-lib": "^1.17.1"
   },
   "engines": {
     "node": ">=18.0.0"
