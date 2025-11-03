@@ -1071,8 +1071,8 @@ let currentProgress = 0;
 
 /**
  * Démarrer la barre de progression avec ralentissement progressif
- * - 0% à 65% : 150ms par % (rapide)
- * - 65% à 95% : 250ms par % (plus lent, 30% en 7,5 secondes)
+ * - 0% à 65% : 225ms par % (rapide) +50%
+ * - 65% à 95% : 375ms par % (plus lent, 30% en 11,25 secondes) +50%
  */
 function startProgressBar() {
     const progressContainer = document.getElementById('quote-progress-container');
@@ -1093,8 +1093,8 @@ function startProgressBar() {
             progressBar.style.width = currentProgress + '%';
             progressPercentage.textContent = currentProgress + '%';
 
-            // Déterminer la vitesse en fonction du pourcentage
-            const delay = currentProgress < 65 ? 150 : 250; // 150ms jusqu'à 65%, puis 250ms
+            // Déterminer la vitesse en fonction du pourcentage (+50%)
+            const delay = currentProgress < 65 ? 225 : 375;
             progressInterval = setTimeout(updateProgress, delay);
         } else {
             // Arrêter à 95% et attendre la vraie réponse
@@ -1107,7 +1107,7 @@ function startProgressBar() {
 }
 
 /**
- * Finaliser la barre de progression (compléter jusqu'à 100% en 2 secondes)
+ * Finaliser la barre de progression (compléter jusqu'à 100% en 3 secondes) +50%
  */
 function finishProgressBar() {
     if (progressInterval) {
@@ -1119,7 +1119,7 @@ function finishProgressBar() {
 
     // Calculer le pourcentage restant
     const remaining = 100 - currentProgress;
-    const stepTime = 2000 / remaining; // 2 secondes réparties sur les % restants
+    const stepTime = 3000 / remaining; // 3 secondes réparties sur les % restants (+50%)
 
     progressInterval = setInterval(() => {
         if (currentProgress < 100) {
