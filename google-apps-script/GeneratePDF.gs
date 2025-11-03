@@ -61,6 +61,12 @@ function generatePdfFromTemplate(quoteData) {
   const doc = DocumentApp.openById(docId);
   const body = doc.getBody();
 
+  // Supprimer la première page si elle contient "Onglet 1"
+  const firstParagraph = body.getParagraphs()[0];
+  if (firstParagraph && firstParagraph.getText().includes('Onglet 1')) {
+    firstParagraph.removeFromParent();
+  }
+
   // Remplacements - Infos principales
   body.replaceText('{{quoteId}}', quoteData.quoteId || '');
   body.replaceText('{{date}}', quoteData.date || '');
