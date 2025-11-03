@@ -120,43 +120,13 @@ function generatePdfFromTemplate(quoteData) {
 
   Logger.log('✅ Variables replaced');
 
-  // 3. Nettoyer le document avant export
-  const cleanedDoc = DocumentApp.openById(docId);
-  const cleanedBody = cleanedDoc.getBody();
-
-  // Supprime les paragraphes vides et tout ce qui contient "Onglet"
-  const elements = cleanedBody.getParagraphs();
-  for (let i = elements.length - 1; i >= 0; i--) {
-    const text = elements[i].getText().trim();
-    if (text === '' || text.match(/^Onglet\s*\d*/i)) {
-      elements[i].removeFromParent();
-    }
-  }
-
-  // Supprime aussi les sauts de page éventuels en tête
-  while (
-    cleanedBody.getChild(0) &&
-    cleanedBody.getChild(0).getType() === DocumentApp.ElementType.PARAGRAPH &&
-    cleanedBody.getChild(0).asParagraph().getText().trim() === ''
-  ) {
-    cleanedBody.removeChild(cleanedBody.getChild(0));
-  }
-
-  // Sauvegarder avant conversion
-  cleanedDoc.saveAndClose();
-
-  Logger.log('✅ Document cleaned');
-
-  // Laisser le temps à Drive de rafraîchir
-  Utilities.sleep(1000);
-
-  // 4. Exporter en PDF
+  // 3. Exporter en PDF
   const pdfBlob = tempDoc.getAs('application/pdf');
   pdfBlob.setName(`Devis_${quoteData.quoteId}.pdf`);
 
   Logger.log('✅ PDF generated');
 
-  // 5. Supprimer le document temporaire
+  // 4. Supprimer le document temporaire
   DriveApp.getFileById(docId).setTrashed(true);
 
   Logger.log('✅ Temp doc deleted');
